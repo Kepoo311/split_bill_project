@@ -1,24 +1,59 @@
 {
   "expo": {
-    "name": "SplitBillApp",
+    "name": "Split Bill By KepoX",
     "slug": "SplitBillApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/LOGO.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+        "backgroundColor": "#070A10",
+        "foregroundImage": "./assets/LOGO.png"
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
+      ],
+      "package": "com.anonymous.SplitBillApp"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/LOGO.png"
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Aplikasi perlu akses galeri untuk memilih foto struk.",
+          "cameraPermission": "Aplikasi perlu akses kamera untuk memotret struk belanja."
+        }
+      ],
+      "expo-splash-screen",
+      "expo-sharing",
+      [
+        "react-native-share",
+        {
+          "enableBase64ShareAndroid": false
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "20466dcc-2296-4b56-a5ad-04f88c034647"
+      }
+    },
+    "owner": "kepoxx"
   }
 }
