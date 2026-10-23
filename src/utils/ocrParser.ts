@@ -18,7 +18,7 @@ const parseMoney = (value: string) => {
 };
 
 const makeItem = (name: string, price: number): BillItem => ({
-  id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+  id: crypto.randomUUID(),
   nama_item: name.trim().replace(/\s+/g, ' '),
   harga: price,
   assignedTo: [],

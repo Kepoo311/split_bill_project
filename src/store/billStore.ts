@@ -22,6 +22,7 @@ interface BillState {
 const STORAGE_KEY = '@split_bill_history_v1';
 const LEARNING_KEY = '@split_bill_learning_v1';
 const PAYMENT_METHODS_KEY = '@split_bill_payment_methods_v1';
+const MAX_HISTORY = 200;
 
 export const useBillStore = create<BillState>((set, get) => ({
   history: [],
@@ -39,20 +40,16 @@ export const useBillStore = create<BillState>((set, get) => ({
     }
   },
   saveBill: async (billData) => {
-    const newEntry: BillHistory = {
-      ...billData,
-      id: Date.now().toString(),
-      date: new Date().toISOString(),
-    };
-    const updated = [newEntry, ...get().history];
-    set({ history: updated });
-    try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.warn('Gagal menyimpan riwayat:', e);
-    }
-      return newEntry;
-    },
+        const newEntry: BillHistory = {
+          ...billData,
+          id: crypto.randomUUID(),
+          date: new Date().toISOString(),
+        };
+        const updated = [newEntry, ...get().history].slice(0, MAX_HISTORY);
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        set({ history: updated });
+        return newEntry;
+      },
   deleteBill: async (id: string) => {
     const updated = get().history.filter((item) => item.id !== id);
     set({ history: updated });
@@ -94,20 +91,16 @@ export const useBillStore = create<BillState>((set, get) => ({
     }
   },
   saveLearningData: async (rawOcrText: string, correctedItems: BillItem[]) => {
-    const newLearning: LearningData = {
-      id: Date.now().toString(),
-      rawOcrText,
-      correctedItems,
-      createdAt: new Date().toISOString(),
-    };
-    const updated = [newLearning, ...get().learningData];
-    set({ learningData: updated });
-    try {
+      const newLearning: LearningData = {
+        id: crypto.randomUUID(),
+        rawOcrText,
+        correctedItems,
+        createdAt: new Date().toISOString(),
+      };
+      const updated = [newLearning, ...get().learningData];
+      set({ learningData: updated });
       await AsyncStorage.setItem(LEARNING_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.warn('Gagal menyimpan data pembelajaran:', e);
-    }
-  },
+    },
   loadLearningData: async () => {
     try {
       const raw = await AsyncStorage.getItem(LEARNING_KEY);
@@ -132,22 +125,17 @@ export const useBillStore = create<BillState>((set, get) => ({
     }
   },
   savePaymentMethod: async (method) => {
-    if (!get().paymentMethodsLoaded) {
-      await get().loadPaymentMethods();
-    }
-    const newMethod: PaymentMethod = {
-      ...method,
-      id: Date.now().toString(),
-    };
-    const updated = [...get().paymentMethods, newMethod];
-    try {
+      if (!get().paymentMethodsLoaded) {
+        await get().loadPaymentMethods();
+      }
+      const newMethod: PaymentMethod = {
+        ...method,
+        id: crypto.randomUUID(),
+      };
+      const updated = [...get().paymentMethods, newMethod];
       await AsyncStorage.setItem(PAYMENT_METHODS_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.warn('Gagal menyimpan payment method:', e);
-      throw e;
-    }
-    set({ paymentMethods: updated });
-  },
+      set({ paymentMethods: updated });
+    },
   deletePaymentMethod: async (id: string) => {
     if (!get().paymentMethodsLoaded) {
       await get().loadPaymentMethods();

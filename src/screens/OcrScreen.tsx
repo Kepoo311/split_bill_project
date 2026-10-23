@@ -108,7 +108,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
       if (parsed.length === 0) {
         setItems([
           {
-            id: `${Date.now()}`,
+            id: crypto.randomUUID(),
             nama_item: 'Menu 1',
             harga: 10000,
             assignedTo: [],
@@ -121,7 +121,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
       showCyberAlert('Info', 'Silakan masukkan item menu secara manual.');
       setItems([
         {
-          id: `${Date.now()}`,
+          id: crypto.randomUUID(),
           nama_item: 'Menu 1',
           harga: 10000,
           assignedTo: [],
@@ -154,7 +154,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleAddItem = () => {
     setItemsModified(true);
     const newItem: BillItem = {
-      id: `${Date.now()}`,
+      id: crypto.randomUUID(),
       nama_item: 'Menu Baru',
       harga: 10000,
       assignedTo: [],
@@ -170,7 +170,11 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
 
     // Jika user melakukan modifikasi/koreksi pada hasil OCR, simpan sebagai data pembelajaran
     if (itemsModified && ocrRawText) {
-      await saveLearningData(ocrRawText, items);
+      try {
+        await saveLearningData(ocrRawText, items);
+      } catch (e) {
+        console.warn('Gagal menyimpan learning data, lanjut navigasi:', e);
+      }
     }
 
     navigation.navigate('Split', {

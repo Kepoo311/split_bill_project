@@ -42,7 +42,7 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
       showCyberAlert('Nama Sudah Ada', 'Gunakan nama atau inisial lain.');
       return;
     }
-    setMembers((prev) => [...prev, { id: `${Date.now()}`, name: trimmed }]);
+    setMembers((prev) => [...prev, { id: crypto.randomUUID(), name: trimmed }]);
     setNewMemberName('');
   };
 
@@ -82,7 +82,7 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
     if (unassignedItems.length > 0) {
       showCyberAlert(
         'Item Belum Ditugaskan',
-        `Ada ${unassignedItems.length} menu yang belum dipilih oleh siapa pun. Tetap lanjut?`,
+        `Ada ${unassignedItems.length} menu belum dipilih siapa pun. Menu itu akan dibagi rata ke semua anggota. Lanjut?`,
         [
           { text: 'Batal', style: 'cancel' },
           { text: 'Lanjut', onPress: calculateAndNavigate },
@@ -95,19 +95,34 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const calculateAndNavigate = () => {
-      const parsedTaxValue = parseFloat(taxValue) || 0;
+    // Mode nominal wajib dibersihkan dari pemisah ribuan: "12.000" bukan 12 rupiah.
+    const parsedTaxValue =
+      parseFloat(
+        taxMode === 'percent' ? taxValue.replace(',', '.') : taxValue.replace(/[^0-9]/g, '')
+      ) || 0;
     const parsedService = parseFloat(serviceCharge.replace(/[^0-9]/g, '')) || 0;
     const parsedDiscount = parseFloat(discountAmount.replace(/[^0-9]/g, '')) || 0;
 
-      const taxConfig = { type: taxMode, value: parsedTaxValue };
+        const subtotalCheck = items.reduce((acc, it) => acc + it.harga, 0);
+        const nominalTax =
+          taxMode === 'percent' ? (subtotalCheck * parsedTaxValue) / 100 : parsedTaxValue;
+        if (parsedDiscount > subtotalCheck + nominalTax + parsedService) {
+          showCyberAlert(
+            'Diskon Terlalu Besar',
+            'Nilai diskon melebihi total tagihan (subtotal + pajak + service).'
+          );
+          return;
+        }
 
-      const { results, subtotal, totalTax, totalService, totalDiscount, grandTotal } = calculateSplit(
-        items,
-        members,
-        taxConfig,
-        parsedService,
-        parsedDiscount
-      );
+        const taxConfig = { type: taxMode, value: parsedTaxValue };
+
+        const { results, subtotal, totalTax, totalService, totalDiscount, grandTotal } = calculateSplit(
+      items,
+      members,
+      taxConfig,
+      parsedService,
+      parsedDiscount
+    );
 
     navigation.navigate('Summary', {
       items,
