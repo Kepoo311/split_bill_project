@@ -229,5 +229,49 @@ check('jumlah item', sq.length, 1);
 check('nama item', names(sq), ['SQUASH PRESSO']);
 check('harga', sum(sq), 17000);
 
+// --- 9. Indomaret Jatinangor (retail, uji di HP: item pertama hilang) ---
+const INDOMARET = `
+Indomaret
+JATINANGOR KM.20 - SUMEDANG No. : 003/DP-IM/JTG/IV/2012Q
+Jl. Raya Jatinangor Km.20 Sumedang, KAB-SUM
+NPWP.02.123.157.5-446.021
+14.09.16- 06:46 2.0.31 914115/ALIA MU/01
+S/ROTI KRIM KEJU 72G 4 4500 18.000
+CIMORY MIX BERRY 22S 1 8500 8.500
+CAFELA ESPRESSO 200ML 1 3500 3.500
+FF LOW FAT VAN 225 1 5200 5.200
+PLASTIK SDG 1 1
+DISKON : (1)
+HARGA JUAL : 35.200
+DISKON FRISIAN FLAG : (1.300)
+TOTAL : 33.900
+TUNAI : 40.000
+KEMBALI : 6.100
+ANDA HEMAT 1.300
+`;
+
+console.log('\n[9] Indomaret — 5 baris retail, header berantakan, diskon');
+const ind = parseReceiptText(INDOMARET);
+check('jumlah item (4+1+1+1, plastik skip)', ind.length, 7);
+check('nama item pertama', names(ind)[0], 'S/ROTI KRIM KEJU 72G');
+check('subtotal', sum(ind), 35200);
+check('diskon', detectReceiptExtras(INDOMARET, sum(ind)).discount, 1300);
+
+console.log('\n[10] Varian OCR: harga satuan kebaca sampah (45OO)');
+const garbled = parseReceiptText('S/ROTI KRIM KEJU 72G 4 45OO 18.000');
+check('jumlah item', garbled.length, 4);
+check('harga satuan', garbled.every((i) => i.harga === 4500), true);
+check('nama', names(garbled)[0], 'S/ROTI KRIM KEJU 72G');
+
+console.log('\n[11] Varian OCR: kolom qty luput terbaca');
+const noQty = parseReceiptText('S/ROTI KRIM KEJU 72G 4500 18.000');
+check('jumlah item', noQty.length, 4);
+check('harga satuan', noQty.every((i) => i.harga === 4500), true);
+
+console.log('\n[12] Regresi: baris "1x harga total" tanpa nama tidak jadi item retail');
+const oneX = parseReceiptText('Air putih\n1x 2.000 2.000');
+check('jumlah item', oneX.length, 1);
+check('nama', names(oneX), ['Air putih']);
+
 console.log(`\n${failures === 0 ? 'SEMUA TEST LULUS' : `${failures} TEST GAGAL`}`);
 if (failures > 0) throw new Error(`${failures} test struk asli gagal`);

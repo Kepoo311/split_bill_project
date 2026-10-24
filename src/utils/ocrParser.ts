@@ -72,7 +72,6 @@ interface RetailRow {
 }
 
 const retailNumber = String.raw`\d{1,7}(?:[.,]\s?\d{3})*`;
-const amountMatches = (line: string) => line.match(new RegExp(retailNumber, 'g')) ?? [];
 
 const totalsMatch = (quantity: number, unitPrice: number, total: number) =>
   quantity > 0 &&
@@ -102,20 +101,31 @@ const splitMergedRetailNames = (text: string, expectedCount: number): string[] =
 const parseRetailRows = (line: string): RetailRow[] => {
   if (/^(?:diskon|harga jual|total|tunai|kembali|anda hemat)\b/i.test(line)) return [];
 
-  const numbers = amountMatches(line);
-  if (numbers.length < 3) return [];
-
-  const values = numbers.map(parseMoney);
-  const prefixEnd = line.search(new RegExp(`\\s+${retailNumber}(?:\\s+${retailNumber}){2,}$`));
-  if (prefixEnd <= 0) return [];
-  const namePrefix = line.slice(0, prefixEnd).trim();
-  if (!/[A-Za-zÀ-ÿ]/.test(namePrefix)) return [];
+  // Numbers glued to letters ("45OO" garble, "72G"/"500ML" pack sizes) are
+  // not price columns — drop them so they stay part of the product name.
+  const matches = [...line.matchAll(new RegExp(retailNumber, 'g'))].filter((match) => {
+    const start = match.index ?? 0;
+    const end = start + match[0].length;
+    return !/[A-Za-zÀ-ÿ]/.test(line[start - 1] ?? '') && !/[A-Za-zÀ-ÿ]/.test(line[end] ?? '');
+  });
+  if (matches.length < 2) return [];
+  const values = matches.map((match) => parseMoney(match[0]));
+  // Retail rows end with their total column; header/license lines keep
+  // trailing text after the numbers, so they never reach the row logic.
+  const last = matches[matches.length - 1];
+  if ((last.index ?? 0) + last[0].length < line.trimEnd().length) return [];
+  const nameBefore = (count: number) => {
+    const match = matches[matches.length - count];
+    return match ? line.slice(0, match.index ?? 0).trim() : '';
+  };
 
   // Two product entries were sometimes joined into one OCR row. POS columns
   // print both quantities, then both unit prices, then both line totals.
   if (values.length >= 6) {
     const [qtyA, qtyB, unitA, unitB, totalA, totalB] = values.slice(-6);
+    const namePrefix = nameBefore(6);
     if (
+      /[A-Za-zÀ-ÿ]/.test(namePrefix) &&
       Number.isInteger(qtyA) &&
       Number.isInteger(qtyB) &&
       totalsMatch(qtyA, unitA, totalA) &&
@@ -136,7 +146,9 @@ const parseRetailRows = (line: string): RetailRow[] => {
   if (values.length >= 5) {
     const [qtyA, qtyB, unitA, totalA, totalB] = values.slice(-5);
     const unitB = qtyB > 0 ? totalB / qtyB : 0;
+    const namePrefix = nameBefore(5);
     if (
+      /[A-Za-zÀ-ÿ]/.test(namePrefix) &&
       Number.isInteger(qtyA) &&
       Number.isInteger(qtyB) &&
       Number.isInteger(unitB) &&
@@ -154,11 +166,37 @@ const parseRetailRows = (line: string): RetailRow[] => {
   }
 
   const [quantity, unitPrice, total] = values.slice(-3);
+  const namePrefix = nameBefore(3);
   if (
+    values.length >= 3 &&
+    /[A-Za-zÀ-ÿ]/.test(namePrefix) &&
     Number.isInteger(quantity) &&
     totalsMatch(quantity, unitPrice, total)
   ) {
     return [{ name: namePrefix, quantity, unitPrice }];
+  }
+
+  // ML Kit can garble or drop a single numeric column on a row (e.g. unit
+  // price read as "45OO", or the qty digit missed). When qty x unit no
+  // longer matches the printed total, re-read the last two columns as
+  // [qty, total] or [unit, total]. Accept only exact division in sane
+  // ranges; the name must have two consecutive letters so bare "1x ..."
+  // price rows never qualify.
+  const fallbackName = nameBefore(2);
+  const [mid, totalValue] = values.slice(-2);
+  if (/[A-Za-zÀ-ÿ]{2,}/.test(fallbackName) && Number.isInteger(mid)) {
+    if (mid >= 1 && mid <= 99 && totalValue % mid === 0) {
+      const unit = totalValue / mid;
+      if (unit >= 100 && unit <= 10000000) {
+        return [{ name: fallbackName, quantity: mid, unitPrice: unit }];
+      }
+    }
+    if (mid >= 100 && mid <= 10000000 && totalValue % mid === 0) {
+      const qty = totalValue / mid;
+      if (qty >= 1 && qty <= 99) {
+        return [{ name: fallbackName, quantity: qty, unitPrice: mid }];
+      }
+    }
   }
 
   return [];
