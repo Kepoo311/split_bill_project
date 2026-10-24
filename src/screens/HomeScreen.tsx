@@ -80,7 +80,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const loadHistory = useBillStore((s) => s.loadHistory);
   const [filterCategory, setFilterCategory] = useState<string>('Semua');
   const [searchQuery, setSearchQuery] = useState('');
-  const searchInputRef = React.useRef<TextInput>(null);
+  const searchInputRef = useRef<TextInput>(null);
   const [showSourceModal, setShowSourceModal] = useState(false);
 
   useEffect(() => {
