@@ -110,21 +110,39 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleShareSystem = async () => {
     try {
       const message = buildShareText();
-      const attachments = await Promise.all(qrisMethods.map(async (method) => {
-        if (!method.qrisImageUri) {
-          throw new Error(`Gambar QRIS ${method.name} tidak tersedia.`);
-        }
-        const base64 = await FileSystem.readAsStringAsync(method.qrisImageUri, {
-          encoding: FileSystem.EncodingType.Base64,
+      // QRIS yang file gambarnya hilang di-skip, bukan menggagalkan share;
+      // tanpa QRIS sama sekali cukup share teks (urls kosong membuat share
+      // Android gagal).
+      const attachments = (
+        await Promise.all(
+          qrisMethods.map(async (method) => {
+            if (!method.qrisImageUri) return null;
+            try {
+              const base64 = await FileSystem.readAsStringAsync(method.qrisImageUri, {
+                encoding: FileSystem.EncodingType.Base64,
+              });
+              const extension = method.qrisImageUri
+                .split(/[?#]/)[0]
+                .match(/\.([a-zA-Z0-9]+)$/)?.[1]
+                ?.toLowerCase();
+              const mimeType = extension === 'png' ? 'image/png' : 'image/jpeg';
+              const filename = `${method.name.replace(/[^a-zA-Z0-9_-]/g, '_') || 'qris'}.${mimeType === 'image/png' ? 'png' : 'jpg'}`;
+              return { data: `data:${mimeType};base64,${base64}`, filename };
+            } catch {
+              return null;
+            }
+          }),
+        )
+      ).filter((a): a is { data: string; filename: string } => a !== null);
+
+      if (attachments.length === 0) {
+        await Share.open({
+          message,
+          title: `Tagihan ${bill.title}`,
+          failOnCancel: false,
         });
-        const extension = method.qrisImageUri
-          .split(/[?#]/)[0]
-          .match(/\.([a-zA-Z0-9]+)$/)?.[1]
-          ?.toLowerCase();
-        const mimeType = extension === 'png' ? 'image/png' : 'image/jpeg';
-        const filename = `${method.name.replace(/[^a-zA-Z0-9_-]/g, '_') || 'qris'}.${mimeType === 'image/png' ? 'png' : 'jpg'}`;
-        return { data: `data:${mimeType};base64,${base64}`, filename };
-      }));
+        return;
+      }
 
       await Share.open({
         message,

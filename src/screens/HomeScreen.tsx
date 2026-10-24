@@ -167,8 +167,19 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
         accessibilityRole="button"
         accessibilityLabel="Buka grup patungan"
       >
-        <Text style={styles.groupsButtonText}>👥 GRUP PATUNGAN</Text>
-        <Text style={styles.groupsButtonSubtext}>Saldo berjalan kosan / tim — multi struk</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.groupsButtonText}>👥 GRUP PATUNGAN</Text>
+          <Text style={styles.groupsButtonSubtext}>Saldo berjalan kosan / tim — multi struk</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.statsBtn}
+          onPress={() => navigation.navigate('Stats')}
+          hitSlop={6}
+          accessibilityRole="button"
+          accessibilityLabel="Buka statistik pengeluaran"
+        >
+          <Text style={styles.statsBtnText}>📊</Text>
+        </TouchableOpacity>
       </TouchableOpacity>
 
       <View style={styles.historySection}>
@@ -250,6 +261,14 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
             },
           },
           {
+            text: '✏️ Isi Manual (tanpa struk)',
+            style: 'default',
+            onPress: () => {
+              setShowSourceModal(false);
+              navigation.navigate('ManualBill');
+            },
+          },
+          {
             text: 'Batal',
             style: 'cancel',
             onPress: () => setShowSourceModal(false),
@@ -279,6 +298,14 @@ const styles = StyleSheet.create({
   },
   groupsButtonText: { color: colors.accent, fontSize: 13, fontWeight: '800', letterSpacing: 0.8 },
   groupsButtonSubtext: { color: colors.textDim, fontSize: 10, marginTop: 2 },
+  statsBtn: {
+    padding: 8,
+    backgroundColor: colors.bg,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  statsBtnText: { fontSize: 16 },
   cyberGrid: {
     position: 'absolute',
     top: 0,

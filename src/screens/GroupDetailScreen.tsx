@@ -6,6 +6,7 @@ import {
   Pressable,
   Modal,
   FlatList,
+  Linking,
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,7 +14,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Image } from 'expo-image';
-import Share, { Social } from 'react-native-share';
+import Share from 'react-native-share';
 import { RootStackParamList, BillHistory } from '../types';
 import { TopBar } from '../components/TopBar';
 import { CyberModal } from '../components/CyberModal';
@@ -90,18 +91,22 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       `Kamu berutang *${formatRupiah(transfer.amount)}* ke *${transfer.toName}*.\n\n` +
       `Sudah transfer? Tolong konfirmasi ya, terima kasih! 🙏\n\n` +
       `_(dibuat otomatis via Split Bill By KepoX)_`;
+    // shareSingle di Android kerap melempar ke Play Store; deep-link
+    // whatsapp:// langsung membuka aplikasinya bila terpasang.
+    const waUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
     try {
-      await Share.shareSingle({
-        title: `Tagihan ${group.name}`,
-        message,
-        social: Social.Whatsapp,
-      });
-    } catch {
-      try {
-        await Share.open({ title: `Tagihan ${group.name}`, message, failOnCancel: false });
-      } catch {
-        fail('Tidak dapat membuka menu berbagi.');
+      const canOpen = await Linking.canOpenURL(waUrl);
+      if (canOpen) {
+        await Linking.openURL(waUrl);
+        return;
       }
+    } catch {
+      // lanjut ke fallback
+    }
+    try {
+      await Share.open({ title: `Tagihan ${group.name}`, message, failOnCancel: false });
+    } catch {
+      fail('Tidak dapat membuka WhatsApp maupun menu berbagi.');
     }
   };
 

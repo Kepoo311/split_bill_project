@@ -101,4 +101,6 @@ export type RootStackParamList = {
   ShareBill: { bill: BillHistory };
   Groups: undefined;
   GroupDetail: { groupId: string };
+  Stats: undefined;
+  ManualBill: undefined;
 };
