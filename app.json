@@ -41,7 +41,6 @@
         }
       ],
       "expo-splash-screen",
-      "expo-sharing",
       [
         "react-native-share",
         {
