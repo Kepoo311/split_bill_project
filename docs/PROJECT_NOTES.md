@@ -1,17 +1,29 @@
 # Project Notes — Split Bill By KepoX
 
-Pengetahuan operasional proyek ini (untuk manusia & agent). Terakhir diperbarui: **2026-10-24, v1.1.0**.
+Pengetahuan operasional proyek ini (untuk manusia & agent). Terakhir diperbarui: **2026-10-24, v1.2.0**.
 
 ## Status snapshot
 
 | Item | Nilai |
 |---|---|
-| Versi app | `1.1.0` (runtime policy `appVersion`) |
+| Versi app | `1.2.0` (runtime policy `appVersion`) |
 | Channel OTA | `preview` (Android) |
-| Test | `npm test` — 175 check di 6 suite, semua harus hijau |
+| Test | `npm test` — 191 check di 7 suite, semua harus hijau |
 | Lint | `npx expo lint` — dipertahankan **0 masalah** |
 | CI | GitHub Actions: `npm ci → tsc → lint → test` tiap push/PR |
 | Distribusi | APK internal via EAS + GitHub Release (tag `Beta`, rolling) |
+| Font | IBM Plex Sans via `expo-font`; semua teks UI lewat `src/components/AppText.tsx` |
+
+## ⚠️ Aturan v1.2.0 (font native)
+
+Sejak v1.2.0 bundle JS meng-import `expo-font` + `@expo-google-fonts/ibm-plex-sans` (modul native).
+**JANGAN PERNAH `eas update` menarget runtime 1.1.x** — install lama tidak punya modul itu dan OTA-nya akan crash saat load. Install 1.1.x hanya bisa naik lewat APK.
+
+Aturan UI sejak v1.2.0:
+- Teks baru SELALU pakai `AppText` (bukan `Text` mentah) — Android tidak bisa mensintesis bold untuk custom family; `AppText` memetakan `fontWeight` ke file font (400/500/600/700). Style `TextInput` diberi `fontFamily` eksplisit.
+- Konstanta `@expo-google-fonts/*` bertipe `number` (aset font), BUKAN string nama family — jangan di-assign ke `fontFamily`. Nama family = key yang dipakai `useFonts()` di `App.js`.
+- Ikon UI = Ionicons (`@expo/vector-icons`); emoji hanya untuk konten pesan WhatsApp/changelog, bukan chrome UI.
+- Gaya bahasa: sentence case (tanpa ALL-CAPS seksi), `letterSpacing` maks ±0.4, tanpa glow/cyber overlay.
 
 ## 🔑 OTA vs Build Ulang — WAJIB PAHAM
 
