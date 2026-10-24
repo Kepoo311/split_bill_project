@@ -1,35 +1,41 @@
 /**
  * Design tokens — satu sumber kebenaran untuk palet, spacing, dan radius.
- * Identitas cyber (gelap + cyan) dipertahankan; aturan penerapannya
- * (prinsip app-screen: warna di data & aksi utama, permukaan flat):
- * - colors.accent untuk aksi utama & angka penting, bukan setiap border
- * - shadow/elevation hanya untuk elemen yang benar-benar melayang (modal)
+ *
+ * Arah desain (ui-ux-pro-max "Trust & Authority" + Minimalism/Swiss,
+ * diambil 2026-10-24): navy slate yang tenang + aksen gold premium yang
+ * berbicara "uang/kepercayaan", bukan neon. Tetap dark-mode penuh.
+ * Warna semantik dipisah tegas: gold = interaksi/aksi, emerald = uang
+ * masuk/positif, orange = utang/perlu dibayar, red = destruktif.
  */
 export const colors = {
-  bg: '#070A10',
-  bgAlt: '#0A0A0F',
-  surface: '#0E1422',
-  surfaceAlt: '#0F172A',
-  border: '#1E293B',
-  line: '#334155',
-  text: '#F9FAFB',
-  textMuted: '#94A3B8',
-  textDim: '#6B7280',
-  textSubtle: '#64748B',
-  textFaint: '#9CA3AF',
-  accent: '#00F0FF',
-  accentSoft: 'rgba(0, 240, 255, 0.1)',
-  accentBorder: 'rgba(0, 240, 255, 0.3)',
-  info: '#38BDF8',
-  infoSoft: 'rgba(56, 189, 248, 0.15)',
-  success: '#10B981',
-  successSoft: 'rgba(16, 185, 129, 0.15)',
-  successBorder: 'rgba(16, 185, 129, 0.4)',
-  warning: '#F59E0B',
-  warningSoft: 'rgba(245, 158, 11, 0.15)',
-  danger: '#EF4444',
-  dangerSoft: 'rgba(239, 68, 68, 0.15)',
-  ink: '#0A0A0F',
+  /** latar utama — navy slate gelap */
+  bg: '#0F172A',
+  bgAlt: '#0B1120',
+  /** kartu/permukaan */
+  surface: '#1E293B',
+  surfaceAlt: '#16213A',
+  border: '#334155',
+  line: '#8FA0BC',
+  text: '#F8FAFC',
+  textMuted: '#CBD5E1',
+  textDim: '#94A3B8',
+  textSubtle: '#8FA0BC',
+  textFaint: '#A8B3C5',
+  /** aksen utama — premium gold (interaksi & angka penting) */
+  accent: '#D4A017',
+  accentSoft: 'rgba(212, 160, 23, 0.14)',
+  accentBorder: 'rgba(212, 160, 23, 0.45)',
+  /** teks di atas tombol terang (gold/accent) */
+  ink: '#10192E',
+  info: '#7DD3FC',
+  infoSoft: 'rgba(125, 211, 252, 0.14)',
+  success: '#34D399',
+  successSoft: 'rgba(52, 211, 153, 0.14)',
+  successBorder: 'rgba(52, 211, 153, 0.45)',
+  warning: '#FB923C',
+  warningSoft: 'rgba(251, 146, 60, 0.15)',
+  danger: '#F87171',
+  dangerSoft: 'rgba(248, 113, 113, 0.14)',
 } as const;
 
 export const spacing = {

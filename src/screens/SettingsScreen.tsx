@@ -416,7 +416,7 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
               value={biometricLock && biometricsAvailable}
               onValueChange={handleToggleBiometricLock}
               disabled={!biometricsAvailable}
-              trackColor={{ true: '#38BDF8', false: '#1E293B' }}
+              trackColor={{ true: '#7DD3FC', false: '#1E293B' }}
               thumbColor="#F9FAFB"
             />
           </View>
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 240, 255, 0.05)',
+    backgroundColor: 'rgba(212, 160, 23, 0.06)',
   },
   uploadIcon: { fontSize: 24, marginBottom: 6 },
   uploadText: { fontSize: 12, color: colors.accent, fontWeight: '700' },
@@ -586,6 +586,6 @@ const styles = StyleSheet.create({
   },
   restartBtnText: { color: colors.info, fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
   updateStatus: { color: colors.textMuted, fontSize: 11, marginTop: 10, lineHeight: 16 },
-  versionInfo: { color: '#475569', fontSize: 10, marginTop: 10, letterSpacing: 0.3 },
+  versionInfo: { color: '#8FA0BC', fontSize: 10, marginTop: 10, letterSpacing: 0.3 },
   btnDisabled: { opacity: 0.6 },
 });

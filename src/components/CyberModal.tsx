@@ -95,7 +95,7 @@ export const CyberModal: React.FC<CyberModalProps> = ({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(7, 10, 16, 0.85)',
+    backgroundColor: 'rgba(11, 17, 32, 0.88)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,

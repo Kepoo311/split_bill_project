@@ -1,5 +1,13 @@
 export const CHANGELOG = [
   {
+    version: '1.1.1',
+    date: '2026-10-24',
+    items: [
+      'Pencarian riwayat: ketik judul, nama item, atau nama anggota — langsung tersaring, gabisa dikombinasi dengan filter kategori',
+      'Tema baru "Trust Gold": navy slate yang tenang + aksen emas premium — tetap dark mode penuh dengan kontras teks tersertifikasi WCAG AA',
+    ],
+  },
+  {
     version: '1.1.0',
     date: '2026-10-24',
     items: [

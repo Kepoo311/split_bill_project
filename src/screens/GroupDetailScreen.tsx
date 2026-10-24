@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     minHeight: 64,
   },
-  memberCardSettled: { borderColor: colors.successBorder, backgroundColor: 'rgba(16, 185, 129, 0.05)' },
+  memberCardSettled: { borderColor: colors.successBorder, backgroundColor: 'rgba(52, 211, 153, 0.06)' },
   cardPressed: { borderColor: colors.accentBorder },
   avatar: {
     width: 40,
@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
   pickerMeta: { fontSize: 10, color: colors.textDim, marginTop: 2 },
   proofBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(7, 10, 16, 0.95)',
+    backgroundColor: 'rgba(11, 17, 32, 0.95)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,

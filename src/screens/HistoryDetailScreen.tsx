@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
     padding: 6,
     marginTop: 10,
     marginLeft: 6,
-    backgroundColor: 'rgba(0, 240, 255, 0.08)',
+    backgroundColor: 'rgba(212, 160, 23, 0.1)',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.accentBorder,
@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
   },
   memberCardPaid: {
     borderColor: colors.successBorder,
-    backgroundColor: 'rgba(16, 185, 129, 0.05)',
+    backgroundColor: 'rgba(52, 211, 153, 0.06)',
   },
   memberLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   checkbox: {
@@ -641,7 +641,7 @@ const styles = StyleSheet.create({
   },
   checkmark: { color: colors.ink, fontSize: 16, fontWeight: '900' },
   memberName: { fontSize: 15, fontWeight: '800', color: colors.text },
-  memberNamePaid: { color: '#E2E8F0' },
+  memberNamePaid: { color: '#CBD5E1' },
   memberShareDetail: { fontSize: 11, color: colors.textDim, marginTop: 2 },
   memberRight: { alignItems: 'flex-end', marginLeft: 8 },
   memberAmount: { fontSize: 15, fontWeight: '900', color: colors.accent },

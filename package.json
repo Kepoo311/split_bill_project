@@ -33,7 +33,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "test": "tsx scripts/test-calculate-split.ts && tsx scripts/test-group-balance.ts && tsx scripts/test-stats.ts && tsx scripts/test-ocr-learning.ts && tsx scripts/test-ocr-parser.ts && tsx scripts/test-real-receipts.ts"
+    "test": "tsx scripts/test-calculate-split.ts && tsx scripts/test-group-balance.ts && tsx scripts/test-stats.ts && tsx scripts/test-ocr-learning.ts && tsx scripts/test-ocr-parser.ts && tsx scripts/test-real-receipts.ts && tsx scripts/test-history-filter.ts"
   },
   "private": true,
   "devDependencies": {

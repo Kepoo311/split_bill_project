@@ -338,12 +338,12 @@ const styles = StyleSheet.create({
   subHint: { fontSize: 11, color: colors.textSubtle, lineHeight: 16, marginBottom: 12 },
   noPaymentNotice: {
     padding: 12,
-    backgroundColor: 'rgba(234, 179, 8, 0.1)',
+    backgroundColor: 'rgba(251, 146, 60, 0.14)',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#EAB308',
+    borderColor: '#FB923C',
   },
-  noPaymentText: { color: '#FDE047', fontSize: 11, fontWeight: '600' },
+  noPaymentText: { color: '#FDBA74', fontSize: 11, fontWeight: '600' },
   paymentSelectRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   },
   paymentSelectRowActive: {
     borderColor: colors.accent,
-    backgroundColor: 'rgba(0, 240, 255, 0.05)',
+    backgroundColor: 'rgba(212, 160, 23, 0.06)',
   },
   checkbox: {
     width: 20,

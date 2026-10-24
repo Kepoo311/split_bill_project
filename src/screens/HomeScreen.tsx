@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   FlatList,
   StyleSheet,
@@ -14,6 +15,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BillHistory, RootStackParamList } from '../types';
 import { CyberModal } from '../components/CyberModal';
 import { UpdateBanner } from '../components/UpdateBanner';
+import { filterHistory } from '../utils/historyFilter';
 import { colors } from '../theme';
 import { formatRupiah, formatDateShortTime } from '../utils/format';
 
@@ -77,6 +79,8 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const history = useBillStore((s) => s.history);
   const loadHistory = useBillStore((s) => s.loadHistory);
   const [filterCategory, setFilterCategory] = useState<string>('Semua');
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = React.useRef<TextInput>(null);
   const [showSourceModal, setShowSourceModal] = useState(false);
 
   useEffect(() => {
@@ -91,9 +95,10 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   const categories = ['Semua', 'Makanan', 'Nongkrong', 'Belanja', 'Lainnya'];
-  const filteredHistory = filterCategory === 'Semua'
-    ? history
-    : history.filter((h) => h.category === filterCategory);
+  const filteredHistory = useMemo(
+    () => filterHistory(history, searchQuery, filterCategory),
+    [history, searchQuery, filterCategory],
+  );
 
   const handlePickImage = async () => {
     try {
@@ -191,6 +196,35 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </View>
 
+        {/* Pencarian: judul, nama item, atau nama anggota */}
+        <View style={styles.searchRow}>
+          <Text style={styles.searchIcon}>🔍</Text>
+          <TextInput
+            ref={searchInputRef}
+            style={styles.searchInput}
+            placeholder="Cari judul, item, atau anggota…"
+            placeholderTextColor={colors.textDim}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+            accessibilityLabel="Cari riwayat transaksi"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              style={styles.searchClear}
+              onPress={() => {
+                setSearchQuery('');
+                searchInputRef.current?.focus();
+              }}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Hapus pencarian"
+            >
+              <Text style={styles.searchClearText}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
         {/* Filter Kategori Chips */}
         <ScrollView
           horizontal
@@ -222,7 +256,9 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.emptyText}>TIDAK ADA DATA</Text>
             <Text style={styles.emptySubtext}>
               {filterCategory === 'Semua'
-                ? 'Struk yang diproses akan tersimpan aman di penyimpanan lokal perangkat.'
+                ? searchQuery
+                  ? `Tidak ada hasil untuk "${searchQuery.trim()}".`
+                  : 'Struk yang diproses akan tersimpan aman di penyimpanan lokal perangkat.'
                 : `Belum ada transaksi dengan kategori "${filterCategory}".`}
             </Text>
           </View>
@@ -318,9 +354,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 180,
-    backgroundColor: 'rgba(0, 240, 255, 0.02)',
+    backgroundColor: 'rgba(212, 160, 23, 0.03)',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 240, 255, 0.08)',
+    borderBottomColor: 'rgba(212, 160, 23, 0.1)',
   },
   header: {
     paddingHorizontal: 20,
@@ -392,7 +428,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 24,
     borderRadius: 16,
-    backgroundColor: '#0E1626',
+    backgroundColor: '#16213A',
     borderWidth: 1.5,
     borderColor: colors.accent,
     padding: 20,
@@ -432,6 +468,26 @@ const styles = StyleSheet.create({
     color: colors.textFaint,
     marginTop: 4,
   },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 44,
+    marginBottom: 10,
+  },
+  searchIcon: { fontSize: 13, marginRight: 8 },
+  searchInput: { flex: 1, fontSize: 13, color: colors.text, padding: 0 },
+  searchClear: {
+    padding: 6,
+    backgroundColor: colors.bg,
+    borderRadius: 12,
+    marginLeft: 6,
+  },
+  searchClearText: { color: colors.textDim, fontSize: 12, fontWeight: '800' },
   historySection: {
     flex: 1,
     paddingHorizontal: 20,
@@ -555,7 +611,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#1A2333',
+    borderTopColor: '#2A3A55',
   },
   metaBadge: {
     backgroundColor: 'rgba(255, 255, 255, 0.04)',
@@ -584,7 +640,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#111827',
+    backgroundColor: '#1E293B',
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
@@ -603,7 +659,7 @@ const styles = StyleSheet.create({
   },
   emptySubtext: {
     fontSize: 12,
-    color: '#4B5563',
+    color: '#8FA0BC',
     textAlign: 'center',
     marginTop: 6,
     lineHeight: 18,

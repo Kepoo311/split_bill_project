@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 50,
     paddingBottom: 16,
-    backgroundColor: 'rgba(7, 10, 16, 0.7)',
+    backgroundColor: 'rgba(11, 17, 32, 0.72)',
   },
   closeButton: {
     backgroundColor: colors.dangerSoft,
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   statusBadge: {
     backgroundColor: colors.accentSoft,
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.5)',
+    borderColor: 'rgba(212, 160, 23, 0.5)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   flipButton: {
     backgroundColor: colors.accentSoft,
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.5)',
+    borderColor: 'rgba(212, 160, 23, 0.5)',
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   bottomPanel: {
     paddingHorizontal: 20,
     paddingBottom: 40,
-    backgroundColor: 'rgba(7, 10, 16, 0.7)',
+    backgroundColor: 'rgba(11, 17, 32, 0.72)',
     alignItems: 'center',
   },
   instructionBox: {
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'rgba(10, 10, 15, 0.9)',
+    backgroundColor: 'rgba(11, 17, 32, 0.92)',
     justifyContent: 'center',
     alignItems: 'center',
   },

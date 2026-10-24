@@ -282,7 +282,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
           <View style={{ flexDirection: 'row', gap: 6 }}>
             <TouchableOpacity
               onPress={handleShowRawText}
-              style={[styles.addButton, { backgroundColor: 'rgba(148, 148, 147, 0.2)' }]}
+              style={[styles.addButton, { backgroundColor: 'rgba(148, 163, 184, 0.2)' }]}
             >
               <Text style={styles.addButtonText}>Teks</Text>
             </TouchableOpacity>
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   detectedBadgeText: {
-    color: '#F0F9FF',
+    color: '#F8FAFC',
     fontSize: 11,
     fontWeight: '700',
   },
