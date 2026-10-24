@@ -47,7 +47,14 @@ export const calculateSplit = (
 
   const exact = members.map((m) => {
     const subtotalOrang = personSubtotals[m.id];
-    const ratio = subtotalKeseluruhan > 0 ? subtotalOrang / subtotalKeseluruhan : 0;
+    // Tanpa subtotal, extras (service/pajak sisa) dibagi rata — kalau tetap
+    // rasio 0, biaya tidak dibayar siapa pun dan jumlah total tidak tutup.
+    const ratio =
+      subtotalKeseluruhan > 0
+        ? subtotalOrang / subtotalKeseluruhan
+        : members.length > 0
+          ? 1 / members.length
+          : 0;
     return {
       member: m,
       subtotalOrang,
@@ -61,17 +68,24 @@ export const calculateSplit = (
   const grandTotal = Math.max(0, Math.round(subtotalKeseluruhan + totalExtra));
 
   // Largest remainder: jumlah totalBayar semua orang PERSIS grandTotal.
-  // Math.round per orang bisa meleset beberapa rupiah ke arah mana pun.
-  const totals = exact.map((e) => Math.floor(e.total));
+  // Nilai dibatasi >= 0 sebelum distribusi sisa — membagi sisa ke angka
+  // negatif lalu meng-clamp di akhir membuat rupiah hilang (bug: orang
+  // "bayar Rp 1" untuk tagihan yang sepenuhnya didiskon).
+  const totals = exact.map((e) => Math.max(0, Math.floor(e.total)));
   let remainder = grandTotal - totals.reduce((a, b) => a + b, 0);
   const byFraction = exact
     .map((e, i) => ({ i, frac: e.total - Math.floor(e.total) }))
     .sort((a, b) => b.frac - a.frac);
-  for (const { i } of byFraction) {
+  let cursor = 0;
+  let guard = 0;
+  while (remainder !== 0 && byFraction.length > 0 && guard < 100000) {
+    guard += 1;
+    const { i } = byFraction[cursor % byFraction.length];
+    cursor += 1;
     if (remainder > 0) {
       totals[i] += 1;
       remainder -= 1;
-    } else if (remainder < 0 && totals[i] > 0) {
+    } else if (totals[i] > 0) {
       totals[i] -= 1;
       remainder += 1;
     }

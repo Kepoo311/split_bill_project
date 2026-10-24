@@ -25,6 +25,22 @@ const STORAGE_KEY = '@split_bill_history_v1';
 const LEARNING_KEY = '@split_bill_learning_v1';
 const PAYMENT_METHODS_KEY = '@split_bill_payment_methods_v1';
 const MAX_HISTORY = 200;
+const MAX_LEARNING = 60;
+
+/**
+ * Validasi best-effort satu entri riwayat. Entri rusak (mis. data setengah
+ * tertulis) dibuang saat load agar satu data buruk tidak merobohkan seluruh
+ * riwayat. Saat schema BillHistory berubah secara breaking, tambahkan
+ * migrasi per versi di loadHistory sebelum validasi ini.
+ */
+const isValidBill = (entry: unknown): entry is BillHistory =>
+  !!entry &&
+  typeof entry === 'object' &&
+  typeof (entry as BillHistory).id === 'string' &&
+  typeof (entry as BillHistory).date === 'string' &&
+  Array.isArray((entry as BillHistory).items) &&
+  Array.isArray((entry as BillHistory).results) &&
+  typeof (entry as BillHistory).grandTotal === 'number';
 
 export const useBillStore = create<BillState>((set, get) => ({
   history: [],
@@ -34,9 +50,19 @@ export const useBillStore = create<BillState>((set, get) => ({
   loadHistory: async () => {
     try {
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        set({ history: JSON.parse(raw) });
+      if (!raw) return;
+      const parsed: unknown = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        console.warn('Data riwayat berformat tak dikenal, direset.');
+        set({ history: [] });
+        return;
       }
+      const valid = parsed.filter(isValidBill);
+      if (valid.length !== parsed.length) {
+        console.warn(`${parsed.length - valid.length} entri riwayat rusak dibuang.`);
+        AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(valid)).catch(() => {});
+      }
+      set({ history: valid });
     } catch (e) {
       console.warn('Gagal memuat riwayat:', e);
     }
@@ -54,12 +80,8 @@ export const useBillStore = create<BillState>((set, get) => ({
       },
   deleteBill: async (id: string) => {
     const updated = get().history.filter((item) => item.id !== id);
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     set({ history: updated });
-    try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.warn('Gagal menghapus riwayat:', e);
-    }
   },
   toggleMemberPayment: async (billId: string, memberId: string) => {
     const updated = get().history.map((bill) => {
@@ -74,23 +96,15 @@ export const useBillStore = create<BillState>((set, get) => ({
         paidMemberIds: newPaid,
       };
     });
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     set({ history: updated });
-    try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.warn('Gagal memperbarui status bayar:', e);
-    }
   },
   updateBillCategory: async (billId: string, category: string) => {
     const updated = get().history.map((bill) =>
       bill.id === billId ? { ...bill, category } : bill
     );
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     set({ history: updated });
-    try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.warn('Gagal update kategori:', e);
-    }
   },
   updateBillTitle: async (billId: string, title: string) => {
     const cleanTitle = title.trim();
@@ -98,12 +112,8 @@ export const useBillStore = create<BillState>((set, get) => ({
     const updated = get().history.map((bill) =>
       bill.id === billId ? { ...bill, title: cleanTitle } : bill
     );
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     set({ history: updated });
-    try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.warn('Gagal update judul:', e);
-    }
   },
   saveLearningData: async (rawOcrText: string, correctedItems: BillItem[]) => {
       const newLearning: LearningData = {
@@ -112,9 +122,15 @@ export const useBillStore = create<BillState>((set, get) => ({
         correctedItems,
         createdAt: new Date().toISOString(),
       };
-      const updated = [newLearning, ...get().learningData];
-      set({ learningData: updated });
+      // Struk yang sama di-scan ulang menimpa koreksi lama (dedupe), jumlah
+      // entri dibatasi agar storage tidak tumbuh tanpa akhir.
+      const normalizeKey = (text: string) => text.trim().toLowerCase().replace(/\s+/g, ' ');
+      const deduped = get().learningData.filter(
+        (l) => normalizeKey(l.rawOcrText) !== normalizeKey(rawOcrText)
+      );
+      const updated = [newLearning, ...deduped].slice(0, MAX_LEARNING);
       await AsyncStorage.setItem(LEARNING_KEY, JSON.stringify(updated));
+      set({ learningData: updated });
     },
   loadLearningData: async () => {
     try {

@@ -1,5 +1,14 @@
 export const CHANGELOG = [
   {
+    version: '1.0.5',
+    date: '2026-10-24',
+    items: [
+      'Perbaikan kritis: tagihan dengan diskon sebesar total tidak lagi memunculkan tagihan Rp 1 — total semua orang selalu persis sama dengan grand total',
+      'Biaya layanan pada tagihan tanpa item kini dibagi rata ke semua anggota',
+      'Lebih stabil: koreksi OCR tidak lagi tersimpan ganda & dibatasi jumlahnya; kegagalan penyimpanan selalu ditampilkan, bukan diam-diam',
+    ],
+  },
+  {
     version: '1.0.4',
     date: '2026-10-24',
     items: [

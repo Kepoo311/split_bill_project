@@ -54,9 +54,32 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       return;
     }
     if (cleanTitle !== currentBill.title) {
-      await updateBillTitle(currentBill.id, cleanTitle);
+      try {
+        await updateBillTitle(currentBill.id, cleanTitle);
+      } catch {
+        showCyberAlert('Gagal Menyimpan', 'Nama transaksi tidak tersimpan. Coba lagi.');
+        return;
+      }
     }
     setIsEditingTitle(false);
+  };
+
+  // Semua mutasi store bisa gagal saat persist — kalau dilepas begitu saja,
+  // error-nya hilang diam-diam dan UI seolah berhasil.
+  const handleSetCategory = async (category: string) => {
+    try {
+      await updateBillCategory(currentBill.id, category);
+    } catch {
+      showCyberAlert('Gagal Menyimpan', 'Kategori tidak tersimpan. Coba lagi.');
+    }
+  };
+
+  const handleTogglePayment = async (memberId: string) => {
+    try {
+      await toggleMemberPayment(currentBill.id, memberId);
+    } catch {
+      showCyberAlert('Gagal Menyimpan', 'Status pembayaran tidak tersimpan. Coba lagi.');
+    }
   };
 
   const handleDelete = () => {
@@ -69,8 +92,12 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           text: 'Hapus',
           style: 'destructive',
           onPress: async () => {
-            await deleteBill(currentBill.id);
-            navigation.goBack();
+            try {
+              await deleteBill(currentBill.id);
+              navigation.goBack();
+            } catch {
+              showCyberAlert('Gagal Menghapus', 'Riwayat tidak dapat dihapus. Coba lagi.');
+            }
           },
         },
       ]
@@ -172,7 +199,7 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                   <TouchableOpacity
                     key={c}
                     style={[styles.catChip, isSelected && styles.catChipSelected]}
-                    onPress={() => updateBillCategory(currentBill.id, c)}
+                    onPress={() => handleSetCategory(c)}
                   >
                     <Text style={[styles.catChipText, isSelected && styles.catChipTextSelected]}>
                       {c}
@@ -204,7 +231,7 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             <TouchableOpacity
               key={res.memberId}
               activeOpacity={0.7}
-              onPress={() => toggleMemberPayment(currentBill.id, res.memberId)}
+              onPress={() => handleTogglePayment(res.memberId)}
               style={[styles.memberCard, isPaid && styles.memberCardPaid]}
             >
               <View style={styles.memberLeft}>
