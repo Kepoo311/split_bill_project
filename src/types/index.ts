@@ -52,6 +52,28 @@ export interface LearningData {
   createdAt: string;
 }
 
+export interface GroupEntry {
+  billId: string;
+  /** Anggota yang menalangi struk; null = dibayar masing-masing (tidak masuk netting). */
+  payerId: string | null;
+  addedAt: string;
+}
+
+export interface GroupSettlement {
+  settledAt: string;
+  /** Bukti transfer — opsional. */
+  proofUri?: string;
+}
+
+export interface BillGroup {
+  id: string;
+  name: string;
+  createdAt: string;
+  members: Member[];
+  entries: GroupEntry[];
+  settlements: Record<string, GroupSettlement>;
+}
+
 export type RootStackParamList = {
   Splash: undefined;
   Home: undefined;
@@ -77,4 +99,6 @@ export type RootStackParamList = {
   CameraScanner: undefined;
   Settings: undefined;
   ShareBill: { bill: BillHistory };
+  Groups: undefined;
+  GroupDetail: { groupId: string };
 };

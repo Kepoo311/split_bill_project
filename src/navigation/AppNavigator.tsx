@@ -13,6 +13,8 @@ import { HistoryDetailScreen } from '../screens/HistoryDetailScreen';
 import { CameraScannerScreen } from '../screens/CameraScannerScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { ShareBillScreen } from '../screens/ShareBillScreen';
+import { GroupsScreen } from '../screens/GroupsScreen';
+import { GroupDetailScreen } from '../screens/GroupDetailScreen';
 import { ChangelogModal } from '../components/ChangelogModal';
 import { useAppUpdates } from '../hooks/useAppUpdates';
 
@@ -40,6 +42,8 @@ export const AppNavigator = () => {
           <Stack.Screen name="CameraScanner" component={CameraScannerScreen} options={{ animation: 'fade_from_bottom' }} />
           <Stack.Screen name="Settings" component={SettingsScreen} options={{ animation: 'slide_from_right' }} />
           <Stack.Screen name="ShareBill" component={ShareBillScreen} options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen name="Groups" component={GroupsScreen} options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen name="GroupDetail" component={GroupDetailScreen} options={{ animation: 'slide_from_right' }} />
         </Stack.Navigator>
       </NavigationContainer>
       <ChangelogModal

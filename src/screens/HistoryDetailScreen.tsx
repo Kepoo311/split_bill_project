@@ -12,8 +12,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { useBillStore } from '../store/billStore';
+import { useGroupStore } from '../store/groupStore';
 import { useCyberAlert } from '../hooks/useCyberAlert';
 import { TopBar } from '../components/TopBar';
+import { CyberModal } from '../components/CyberModal';
 import { colors } from '../theme';
 import { formatRupiah, formatDateLong } from '../utils/format';
 
@@ -31,6 +33,14 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState('');
+
+  // Alur tambah-ke-grup
+  const groups = useGroupStore((s) => s.groups);
+  const createGroup = useGroupStore((s) => s.createGroup);
+  const addBillToGroup = useGroupStore((s) => s.addBillToGroup);
+  const [showGroupPicker, setShowGroupPicker] = useState(false);
+  const [payerGroupId, setPayerGroupId] = useState<string | null>(null);
+  const [newGroupName, setNewGroupName] = useState('');
 
   // Ambil state terkini dari store jika ada update
   const currentBill = history.find((b) => b.id === initialBill.id) || initialBill;
@@ -79,6 +89,36 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       await toggleMemberPayment(currentBill.id, memberId);
     } catch {
       showCyberAlert('Gagal Menyimpan', 'Status pembayaran tidak tersimpan. Coba lagi.');
+    }
+  };
+
+  const payerGroup = groups.find((g) => g.id === payerGroupId) ?? null;
+
+  const handleCreateAndAdd = async () => {
+    const name = newGroupName.trim();
+    if (!name) {
+      showCyberAlert('Nama Kosong', 'Isi nama grupnya dulu.');
+      return;
+    }
+    try {
+      const group = await createGroup(name);
+      setNewGroupName('');
+      setShowGroupPicker(false);
+      setPayerGroupId(group.id);
+    } catch {
+      showCyberAlert('Gagal', 'Grup baru tidak dapat dibuat. Coba lagi.');
+    }
+  };
+
+  const handleAddToGroup = async (payerId: string | null) => {
+    if (!payerGroupId) return;
+    try {
+      await addBillToGroup(payerGroupId, currentBill, payerId);
+      const groupName = groups.find((g) => g.id === payerGroupId)?.name ?? 'grup';
+      setPayerGroupId(null);
+      showCyberAlert('Masuk Grup', `"${currentBill.title}" tercatat di grup "${groupName}".`);
+    } catch {
+      showCyberAlert('Gagal', 'Struk tidak dapat ditambahkan ke grup. Coba lagi.');
     }
   };
 
@@ -217,6 +257,15 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           >
             <Text style={styles.shareBtnText}>⚡ BAGIKAN KE WHATSAPP / MEDSOS</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.addToGroupBtn}
+            onPress={() => setShowGroupPicker(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Tambahkan struk ini ke grup patungan"
+          >
+            <Text style={styles.addToGroupBtnText}>👥 TAMBAHKAN KE GRUP PATUNGAN</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Member Payment Status Checklist */}
@@ -296,6 +345,73 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+      {/* Pilih grup tujuan */}
+      <CyberModal
+        visible={showGroupPicker}
+        title="TAMBAH KE GRUP"
+        message="Struk ini ikut dihitung dalam saldo grup yang dipilih."
+        onClose={() => setShowGroupPicker(false)}
+        buttons={[{ text: 'Tutup', style: 'cancel' }]}
+      >
+        {groups.map((g) => (
+          <TouchableOpacity
+            key={g.id}
+            style={styles.groupPickerRow}
+            onPress={() => {
+              setShowGroupPicker(false);
+              setPayerGroupId(g.id);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={`Tambah ke grup ${g.name}`}
+          >
+            <Text style={styles.groupPickerTitle} numberOfLines={1}>
+              👥 {g.name}
+            </Text>
+            <Text style={styles.groupPickerMeta}>
+              {g.members.length} anggota • {g.entries.length} struk
+            </Text>
+          </TouchableOpacity>
+        ))}
+        <TextInput
+          style={styles.groupPickerInput}
+          placeholder="atau buat grup baru, mis. Kosan"
+          placeholderTextColor={colors.textDim}
+          value={newGroupName}
+          onChangeText={setNewGroupName}
+          maxLength={40}
+        />
+        <TouchableOpacity style={styles.groupPickerCreate} onPress={handleCreateAndAdd}>
+          <Text style={styles.addToGroupBtnText}>＋ Buat Grup Baru</Text>
+        </TouchableOpacity>
+      </CyberModal>
+
+      {/* Pilih siapa yang nalangin struk ini */}
+      <CyberModal
+        visible={payerGroup !== null}
+        title="SIAPA YANG NALANGIN?"
+        message={`Untuk "${currentBill.title}" — menentukan siapa yang berhak menerima uang di grup ${payerGroup?.name ?? ''}.`}
+        onClose={() => setPayerGroupId(null)}
+        buttons={[{ text: 'Batal', style: 'cancel' }]}
+      >
+        {(payerGroup?.members ?? []).map((m) => (
+          <TouchableOpacity
+            key={m.id}
+            style={styles.groupPickerRow}
+            onPress={() => handleAddToGroup(m.id)}
+          >
+            <Text style={styles.groupPickerTitle}>{m.name}</Text>
+          </TouchableOpacity>
+        ))}
+        <TouchableOpacity
+          style={[styles.groupPickerRow, { borderColor: colors.line, borderStyle: 'dashed' }]}
+          onPress={() => handleAddToGroup(null)}
+        >
+          <Text style={[styles.groupPickerTitle, { color: colors.textDim }]}>
+            Tidak dicatat (bayar masing-masing)
+          </Text>
+        </TouchableOpacity>
+      </CyberModal>
+
       {cyberAlertModal}
     </SafeAreaView>
   );
@@ -436,6 +552,49 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   shareBtnText: { color: colors.bg, fontSize: 12, fontWeight: '900', letterSpacing: 0.5 },
+  addToGroupBtn: {
+    backgroundColor: colors.accentSoft,
+    borderWidth: 1,
+    borderColor: colors.accentBorder,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  addToGroupBtnText: { color: colors.accent, fontSize: 12, fontWeight: '900', letterSpacing: 0.5 },
+  groupPickerRow: {
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 8,
+    minHeight: 48,
+    justifyContent: 'center',
+  },
+  groupPickerTitle: { fontSize: 13, fontWeight: '700', color: colors.text },
+  groupPickerMeta: { fontSize: 10, color: colors.textDim, marginTop: 2 },
+  groupPickerInput: {
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 13,
+    color: colors.text,
+    marginBottom: 8,
+  },
+  groupPickerCreate: {
+    backgroundColor: colors.accent,
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    minHeight: 44,
+    justifyContent: 'center',
+  },
   sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

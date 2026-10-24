@@ -1,5 +1,15 @@
 export const CHANGELOG = [
   {
+    version: '1.0.8',
+    date: '2026-10-24',
+    items: [
+      'GRUP PATUNGAN: kumpulkan banyak struk jadi satu saldo berjalan — kosan, tim futsal, kantor',
+      'Catat siapa yang menalangi tiap struk; saldo +diterima/−berutang tiap anggota terhitung otomatis dan selalu imbang',
+      'Tandai anggota lunas — lampiran bukti transfer OPSIONAL (bisa dengan atau tanpa foto)',
+      'Anggota antar struk digabung otomatis berdasarkan nama',
+    ],
+  },
+  {
     version: '1.0.7',
     date: '2026-10-24',
     items: [

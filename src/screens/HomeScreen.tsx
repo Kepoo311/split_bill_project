@@ -160,6 +160,17 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
       <UpdateBanner />
 
+      <TouchableOpacity
+        style={styles.groupsButton}
+        activeOpacity={0.8}
+        onPress={() => navigation.navigate('Groups')}
+        accessibilityRole="button"
+        accessibilityLabel="Buka grup patungan"
+      >
+        <Text style={styles.groupsButtonText}>👥 GRUP PATUNGAN</Text>
+        <Text style={styles.groupsButtonSubtext}>Saldo berjalan kosan / tim — multi struk</Text>
+      </TouchableOpacity>
+
       <View style={styles.historySection}>
         <View style={styles.sectionHeader}>
           <Text style={styles.historyTitle}>RIWAYAT TRANSAKSI</Text>
@@ -255,6 +266,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg,
   },
+  groupsButton: {
+    borderWidth: 1,
+    borderColor: colors.accentBorder,
+    backgroundColor: colors.accentSoft,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 14,
+    minHeight: 56,
+    justifyContent: 'center',
+  },
+  groupsButtonText: { color: colors.accent, fontSize: 13, fontWeight: '800', letterSpacing: 0.8 },
+  groupsButtonSubtext: { color: colors.textDim, fontSize: 10, marginTop: 2 },
   cyberGrid: {
     position: 'absolute',
     top: 0,
