@@ -160,27 +160,28 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
       <UpdateBanner />
 
-      <TouchableOpacity
-        style={styles.groupsButton}
-        activeOpacity={0.8}
-        onPress={() => navigation.navigate('Groups')}
-        accessibilityRole="button"
-        accessibilityLabel="Buka grup patungan"
-      >
-        <View style={{ flex: 1 }}>
+      <View style={styles.quickActionsRow}>
+        <TouchableOpacity
+          style={styles.groupsButton}
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate('Groups')}
+          accessibilityRole="button"
+          accessibilityLabel="Buka grup patungan"
+        >
           <Text style={styles.groupsButtonText}>👥 GRUP PATUNGAN</Text>
           <Text style={styles.groupsButtonSubtext}>Saldo berjalan kosan / tim — multi struk</Text>
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity
-          style={styles.statsBtn}
+          style={styles.statsButton}
+          activeOpacity={0.8}
           onPress={() => navigation.navigate('Stats')}
-          hitSlop={6}
           accessibilityRole="button"
           accessibilityLabel="Buka statistik pengeluaran"
         >
-          <Text style={styles.statsBtnText}>📊</Text>
+          <Text style={styles.statsIcon}>📊</Text>
+          <Text style={styles.statsLabel}>STATISTIK</Text>
         </TouchableOpacity>
-      </TouchableOpacity>
+      </View>
 
       <View style={styles.historySection}>
         <View style={styles.sectionHeader}>
@@ -285,27 +286,32 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg,
   },
+  quickActionsRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
   groupsButton: {
+    flex: 1,
     borderWidth: 1,
     borderColor: colors.accentBorder,
     backgroundColor: colors.accentSoft,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    marginBottom: 14,
-    minHeight: 56,
+    minHeight: 64,
     justifyContent: 'center',
   },
   groupsButtonText: { color: colors.accent, fontSize: 13, fontWeight: '800', letterSpacing: 0.8 },
   groupsButtonSubtext: { color: colors.textDim, fontSize: 10, marginTop: 2 },
-  statsBtn: {
-    padding: 8,
-    backgroundColor: colors.bg,
-    borderRadius: 8,
+  statsButton: {
+    width: 84,
     borderWidth: 1,
     borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 64,
   },
-  statsBtnText: { fontSize: 16 },
+  statsIcon: { fontSize: 20 },
+  statsLabel: { color: colors.textMuted, fontSize: 9, fontWeight: '800', letterSpacing: 0.8, marginTop: 4 },
   cyberGrid: {
     position: 'absolute',
     top: 0,
