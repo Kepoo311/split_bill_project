@@ -28,7 +28,75 @@ export interface StatsSummary {
   months: MonthlySpend[];
 }
 
-const monthKey = (date: Date) => `${date.getFullYear()}-${date.getMonth()}`;
+export interface DaySpend {
+  key: string;
+  /** label pendek untuk chart, mis. "21" (tanggal) */
+  label: string;
+  /** tanggal lokal (mulai hari) untuk display panjang */
+  date: Date;
+  total: number;
+  count: number;
+}
+
+/** Kunci hari lokal dengan zero-padding — aman untuk perbandingan rentang. */
+export const localDayKey = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+const dayKey = localDayKey;
+
+const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const DAY_LABEL = new Intl.DateTimeFormat('id-ID', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+});
+
+/** Ember per hari untuk N hari terakhir (termasuk hari kosong), urut lama → baru. */
+export const computeDailySpend = (history: BillHistory[], now: Date, days: number): DaySpend[] => {
+  const buckets: DaySpend[] = [];
+  for (let offset = days - 1; offset >= 0; offset -= 1) {
+    const date = startOfDay(new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset));
+    buckets.push({
+      key: dayKey(date),
+      label: String(date.getDate()),
+      date,
+      total: 0,
+      count: 0,
+    });
+  }
+  const byKey = new Map(buckets.map((bucket) => [bucket.key, bucket]));
+  history.forEach((bill) => {
+    const bucket = byKey.get(dayKey(new Date(bill.date)));
+    if (bucket) {
+      bucket.total += bill.grandTotal;
+      bucket.count += 1;
+    }
+  });
+  return buckets;
+};
+
+export const formatDayLabel = (date: Date) => DAY_LABEL.format(date);
+
+/** Total setengah-terbuka [from, to) menurut tanggal lokal. */
+export const sumRange = (history: BillHistory[], from: Date, to: Date) => {
+  let total = 0;
+  let count = 0;
+  const fromKey = dayKey(from);
+  const toKey = dayKey(to);
+  const order = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+  history.forEach((bill) => {
+    const key = dayKey(new Date(bill.date));
+    if (order(key, fromKey) >= 0 && order(key, toKey) < 0) {
+      total += bill.grandTotal;
+      count += 1;
+    }
+  });
+  return { total, count };
+};
+
+const monthKey = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}`;
 
 export const computeStats = (history: BillHistory[], now: Date = new Date()): StatsSummary => {
   const allTime = history.reduce((sum, bill) => sum + bill.grandTotal, 0);

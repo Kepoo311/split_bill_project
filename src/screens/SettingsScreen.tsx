@@ -14,6 +14,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Updates from 'expo-updates';
 import * as Clipboard from 'expo-clipboard';
+import * as LocalAuthentication from 'expo-local-authentication';
 import { Image } from 'expo-image';
 import Share from 'react-native-share';
 import { useBillStore } from '../store/billStore';
@@ -48,7 +49,17 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const isChecking = useUpdateStore((s) => s.isChecking);
   const isDownloading = useUpdateStore((s) => s.isDownloading);
   const updateDownloaded = useUpdateStore((s) => s.updateDownloaded);
+  const biometricLock = useUpdateStore((s) => s.biometricLock);
   const [updateStatus, setUpdateStatus] = useState<string>('');
+  const [biometricsAvailable, setBiometricsAvailable] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const hasHardware = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      setBiometricsAvailable(hasHardware && enrolled);
+    })();
+  }, []);
 
   useEffect(() => {
     useUpdateStore.getState().loadPrefs();
@@ -144,6 +155,10 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleToggleAutoUpdate = async (value: boolean) => {
     await useUpdateStore.getState().setAutoUpdate(value);
+  };
+
+  const handleToggleBiometricLock = async (value: boolean) => {
+    await useUpdateStore.getState().setBiometricLock(value);
   };
 
   const handleCheckUpdate = async () => {
@@ -383,6 +398,28 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={styles.versionInfo}>
             Versi {CHANGELOG[0].version} • Channel {Updates.channel ?? '-'}
           </Text>
+        </View>
+
+        {/* Section Keamanan */}
+        <Text style={styles.sectionTitle}>Keamanan</Text>
+        <View style={styles.card}>
+          <View style={styles.updateRow}>
+            <View style={styles.updateTextWrap}>
+              <Text style={styles.updateLabel}>Kunci Biometrik</Text>
+              <Text style={styles.subHint}>
+                {biometricsAvailable
+                  ? 'Verifikasi sidik jari/wajah/PIN setiap kali membuka aplikasi.'
+                  : 'Perangkat belum mengatur sidik jari/wajah/PIN — atur dulu di Pengaturan HP untuk mengaktifkan ini.'}
+              </Text>
+            </View>
+            <Switch
+              value={biometricLock && biometricsAvailable}
+              onValueChange={handleToggleBiometricLock}
+              disabled={!biometricsAvailable}
+              trackColor={{ true: '#38BDF8', false: '#1E293B' }}
+              thumbColor="#F9FAFB"
+            />
+          </View>
         </View>
 
         {/* Section Data & Backup */}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -14,10 +14,11 @@ import * as Clipboard from 'expo-clipboard';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Image } from 'expo-image';
 import Share from 'react-native-share';
+import { captureRef } from 'react-native-view-shot';
 import { CyberModal } from '../components/CyberModal';
 import { TopBar } from '../components/TopBar';
 import { colors } from '../theme';
-import { formatNumber } from '../utils/format';
+import { formatDateShortTime, formatNumber, formatRupiah } from '../utils/format';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ShareBill'>;
 
@@ -28,6 +29,7 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
   // Semua metode terpilih secara default; state hanya mencatat yang di-skip
   // user — menghindari efek sinkronisasi derived state dari store.
   const [deselected, setDeselected] = useState<ReadonlySet<string>>(new Set());
+  const shareCardRef = useRef<View>(null);
 
   // Modal State
   const [modalVisible, setModalVisible] = useState(false);
@@ -165,6 +167,21 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
     showCyberAlert('Tersalin!', 'Teks format WhatsApp berhasil disalin ke clipboard.');
   };
 
+  const handleShareImage = async () => {
+    try {
+      if (!shareCardRef.current) return;
+      const uri = await captureRef(shareCardRef, { format: 'png', quality: 1 });
+      await Share.open({
+        title: `Tagihan ${bill.title}`,
+        url: uri,
+        type: 'image/png',
+        failOnCancel: false,
+      });
+    } catch {
+      showCyberAlert('Gagal', 'Gambar ringkasan tidak dapat dibuat. Coba lagi.');
+    }
+  };
+
   const qrisMethods = paymentMethods.filter(
     (p) => p.type === 'qris' && p.qrisImageUri && !deselected.has(p.id)
   );
@@ -257,9 +274,35 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
         </View>
 
+        {/* Kartu Gambar (yang di-capture saat dibagikan) */}
+        <View style={styles.card}>
+          <Text style={styles.sectionHeader}>Preview Gambar Ringkasan</Text>
+          <View ref={shareCardRef} collapsable={false} style={styles.imageCard}>
+            <Text style={styles.imageCardBrand}>SPLIT BILL BY KEPOX</Text>
+            <Text style={styles.imageCardTitle} numberOfLines={1}>{bill.title}</Text>
+            <Text style={styles.imageCardDate}>{formatDateShortTime(bill.date)}</Text>
+            <View style={styles.imageCardDivider} />
+            {bill.results.map((res) => (
+              <View key={res.memberId} style={styles.imageCardRow}>
+                <Text style={styles.imageCardName} numberOfLines={1}>
+                  {res.name}{bill.paidMemberIds?.includes(res.memberId) ? ' ✓' : ''}
+                </Text>
+                <Text style={styles.imageCardAmount}>{formatRupiah(res.totalBayar)}</Text>
+              </View>
+            ))}
+            <View style={styles.imageCardDivider} />
+            <Text style={styles.imageCardTotalLabel}>TOTAL TAGIHAN</Text>
+            <Text style={styles.imageCardTotal}>{formatRupiah(bill.grandTotal)}</Text>
+          </View>
+        </View>
+
         {/* Action Buttons */}
         <TouchableOpacity style={styles.shareBtnPrimary} onPress={handleShareSystem}>
           <Text style={styles.shareBtnText}>🚀 Bagikan ke WhatsApp / Medsos</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.copyBtnSecondary} onPress={handleShareImage}>
+          <Text style={styles.copyBtnText}>📸 Bagikan sebagai Gambar</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.copyBtnSecondary} onPress={handleCopyText}>
@@ -369,4 +412,20 @@ const styles = StyleSheet.create({
     borderColor: colors.accent,
   },
   copyBtnText: { color: colors.accent, fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  imageCard: {
+    backgroundColor: colors.bgAlt,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.accentBorder,
+    padding: 20,
+  },
+  imageCardBrand: { color: colors.accent, fontSize: 10, fontWeight: '900', letterSpacing: 2, textAlign: 'center' },
+  imageCardTitle: { color: colors.text, fontSize: 18, fontWeight: '900', textAlign: 'center', marginTop: 8 },
+  imageCardDate: { color: colors.textDim, fontSize: 11, textAlign: 'center', marginTop: 2 },
+  imageCardDivider: { height: 1, backgroundColor: colors.border, marginVertical: 14 },
+  imageCardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
+  imageCardName: { flex: 1, color: colors.text, fontSize: 14, fontWeight: '700', marginRight: 12 },
+  imageCardAmount: { color: colors.accent, fontSize: 14, fontWeight: '900' },
+  imageCardTotalLabel: { color: colors.textDim, fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textAlign: 'center' },
+  imageCardTotal: { color: colors.accent, fontSize: 28, fontWeight: '900', textAlign: 'center', marginTop: 4 },
 });

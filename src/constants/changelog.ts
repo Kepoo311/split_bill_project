@@ -1,5 +1,15 @@
 export const CHANGELOG = [
   {
+    version: '1.1.0',
+    date: '2026-10-24',
+    items: [
+      'Statistik interaktif: filter Hari Ini / 7 Hari / Bulan Ini, chart bisa di-tap untuk melihat rincian tagihan per periode',
+      'Bagikan tagihan sebagai GAMBAR — kartu ringkasan bergaya rapi, siap dikirim ke grup WA',
+      'Kunci biometrik: proteksi sidik jari/wajah/PIN saat membuka aplikasi (Pengaturan › Keamanan)',
+      'Pembaruan runtime: update OTA kini berbasis fingerprint — lebih tahan lama antar versi',
+    ],
+  },
+  {
     version: '1.0.9',
     date: '2026-10-24',
     items: [

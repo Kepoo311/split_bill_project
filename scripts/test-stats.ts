@@ -1,7 +1,7 @@
 /**
  * Test statistik lokal. Jalankan: npm test
  */
-import { computeStats } from '../src/utils/stats';
+import { computeStats, computeDailySpend, sumRange, formatDayLabel } from '../src/utils/stats';
 import type { BillHistory } from '../src/types';
 
 let failures = 0;
@@ -66,6 +66,29 @@ console.log('\n[4] Tahun beda, bulan sama (Jul 2025 vs Jul 2026) tidak tercampur
 const history4 = [bill('x', '2025-07-10T10:00:00Z', 70000), bill('y', '2026-07-10T10:00:00Z', 10000)];
 const s4 = computeStats(history4, NOW);
 check('Jul 2026 hanya 10rb', s4.months[2].total, 10000);
+
+console.log('\n[5] Ember per hari: 7 hari termasuk kosong + label tanggal');
+const d5 = computeDailySpend(history1, NOW, 7);
+check('jumlah ember 7', d5.length, 7);
+check('label = tanggal', d5.map((d) => d.label), ['18', '19', '20', '21', '22', '23', '24']);
+check('hari ini (2 struk Okt 2 & 20... cek ember tgl 20)', d5.find((d) => d.label === '20')?.total, 30000);
+check('hari kosong = 0', d5.find((d) => d.label === '23')?.total, 0);
+check('tgl 2 Okt di luar jendela 7 hari', d5.find((d) => d.label === '2'), undefined);
+const d5b = computeDailySpend(history1, NOW, 30);
+check('jendela 30 hari menangkap tgl 2', d5b.find((d) => d.label === '2')?.total, 50000);
+
+console.log('\n[6] sumRange setengah-terbuka [from, to)');
+const today = new Date(2026, 9, 24);
+const weekAgo = new Date(2026, 9, 17);
+const r6 = sumRange(history1, weekAgo, new Date(2026, 9, 25));
+check('7 hari: hanya struk tgl 20 (30rb) — tgl 2 di luar jendela', r6, { total: 30000, count: 1 });
+const r6b = sumRange(history1, today, new Date(2026, 9, 25));
+check('hari ini (24 Okt) kosong — struk terakhir tgl 20', r6b, { total: 0, count: 0 });
+check('rentang tgl 2 saja menangkap 50rb', sumRange(history1, new Date(2026, 9, 2), new Date(2026, 9, 3)), { total: 50000, count: 1 });
+check('batas to eksklusif', sumRange(history1, new Date(2026, 9, 20), new Date(2026, 9, 21)), { total: 30000, count: 1 });
+
+console.log('\n[7] formatDayLabel Indonesia');
+check('label hari', formatDayLabel(new Date(2026, 9, 24)), 'Sab, 24 Okt');
 
 console.log(`\n${failures === 0 ? 'SEMUA TEST LULUS' : `${failures} TEST GAGAL`}`);
 if (failures > 0) throw new Error(`${failures} test stats gagal`);

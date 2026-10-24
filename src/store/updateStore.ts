@@ -6,10 +6,12 @@ import { CHANGELOG, type ChangelogEntry } from '../constants/changelog';
 export type UpdateResult = 'uptodate' | 'ready' | 'error' | 'disabled';
 
 const AUTO_UPDATE_KEY = '@split_bill_auto_update_v1';
+const BIOMETRIC_LOCK_KEY = '@split_bill_biometric_lock_v1';
 const LAST_SEEN_VERSION_KEY = '@split_bill_last_seen_version';
 
 interface UpdateState {
   autoUpdate: boolean;
+  biometricLock: boolean;
   prefsLoaded: boolean;
   isChecking: boolean;
   isDownloading: boolean;
@@ -20,6 +22,7 @@ interface UpdateState {
   changelogEntry: ChangelogEntry | null;
   loadPrefs: () => Promise<void>;
   setAutoUpdate: (value: boolean) => Promise<void>;
+  setBiometricLock: (value: boolean) => Promise<void>;
   checkAndFetch: () => Promise<UpdateResult>;
   applyUpdate: () => Promise<boolean>;
   checkChangelog: () => Promise<void>;
@@ -28,6 +31,7 @@ interface UpdateState {
 
 export const useUpdateStore = create<UpdateState>((set, get) => ({
   autoUpdate: true,
+  biometricLock: false,
   prefsLoaded: false,
   isChecking: false,
   isDownloading: false,
@@ -54,10 +58,22 @@ export const useUpdateStore = create<UpdateState>((set, get) => ({
 
   loadPrefs: async () => {
     try {
-      const raw = await AsyncStorage.getItem(AUTO_UPDATE_KEY);
-      set({ autoUpdate: raw !== 'false', prefsLoaded: true });
+      const [rawAuto, rawLock] = await Promise.all([
+        AsyncStorage.getItem(AUTO_UPDATE_KEY),
+        AsyncStorage.getItem(BIOMETRIC_LOCK_KEY),
+      ]);
+      set({ autoUpdate: rawAuto !== 'false', biometricLock: rawLock === 'true', prefsLoaded: true });
     } catch {
       set({ prefsLoaded: true });
+    }
+  },
+
+  setBiometricLock: async (value: boolean) => {
+    set({ biometricLock: value });
+    try {
+      await AsyncStorage.setItem(BIOMETRIC_LOCK_KEY, value ? 'true' : 'false');
+    } catch {
+      // Preferensi gagal tersimpan — tetap berlaku untuk sesi ini.
     }
   },
 
