@@ -85,4 +85,4 @@ scripts/test-*.ts           # 6 suite test (dijalankan npm test)
 
 ## Roadmap
 
-8-batch roadmap (audit + fitur) — **7 selesai** (fondasi kualitas, export/backup+CI, belajar OCR, grup patungan, netting+tagih WA, statistik+bill manual, native batch 1.1.0). Tersisa #8 iOS (opsional, butuh Apple Developer account). Detail riwayat: lihat git log + changelog in-app.
+8-batch roadmap (audit + fitur) — **TUNTAS 2026-10-24**: batch 1–7 selesai (fondasi kualitas & bug uang, export/backup+CI, belajar OCR, grup patungan, netting+tagih WA, statistik+bill manual, native batch v1.1.0). Batch 8 (iOS) **di-skip** — keputusan owner: Android-only. Detail riwayat: git log + changelog in-app.
