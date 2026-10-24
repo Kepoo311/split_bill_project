@@ -1,22 +1,16 @@
 import React from 'react';
 import { StyleSheet, Text, TextProps, TextStyle } from 'react-native';
-import {
-  IBMPlexSans_400Regular,
-  IBMPlexSans_500Medium,
-  IBMPlexSans_600SemiBold,
-  IBMPlexSans_700Bold,
-} from '@expo-google-fonts/ibm-plex-sans';
 
 /**
  * Text dengan IBM Plex Sans: fontWeight di style otomatis dipetakan ke file
  * font yang benar (Android tidak bisa mensintesis bold untuk custom family).
- * Pakai komponen ini menggantikan Text di seluruh UI.
+ * Nama family di bawah harus sama dengan key useFonts() di App.js.
  */
 
-const FAMILY_REGULAR = IBMPlexSans_400Regular;
-const FAMILY_MEDIUM = IBMPlexSans_500Medium;
-const FAMILY_SEMIBOLD = IBMPlexSans_600SemiBold;
-const FAMILY_BOLD = IBMPlexSans_700Bold;
+const FAMILY_REGULAR = 'IBMPlexSans_400Regular';
+const FAMILY_MEDIUM = 'IBMPlexSans_500Medium';
+const FAMILY_SEMIBOLD = 'IBMPlexSans_600SemiBold';
+const FAMILY_BOLD = 'IBMPlexSans_700Bold';
 
 const weightToFamily = (weight: TextStyle['fontWeight']): string => {
   switch (weight) {
