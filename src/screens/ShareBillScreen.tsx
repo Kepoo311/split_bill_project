@@ -1,11 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBillStore } from '../store/billStore';
 import { RootStackParamList } from '../types';
@@ -19,6 +13,7 @@ import { CyberModal } from '../components/CyberModal';
 import { TopBar } from '../components/TopBar';
 import { colors } from '../theme';
 import { formatDateShortTime, formatNumber, formatRupiah } from '../utils/format';
+import { AppText } from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ShareBill'>;
 
@@ -198,23 +193,23 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
         {/* Pilih Metode Pembayaran yang Disertakan */}
         <View style={styles.card}>
           <View style={styles.rowBetween}>
-            <Text style={styles.sectionHeader}>Metode Pembayaran</Text>
+            <AppText style={styles.sectionHeader}>Metode Pembayaran</AppText>
             <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-              <Text style={styles.linkText}>+ Kelola / Tambah</Text>
+              <AppText style={styles.linkText}>+ Kelola / Tambah</AppText>
             </TouchableOpacity>
           </View>
-          <Text style={styles.subHint}>
+          <AppText style={styles.subHint}>
             Pilih satu atau lebih rekening/QRIS untuk dicantumkan di teks WhatsApp:
-          </Text>
+          </AppText>
 
           {paymentMethods.length === 0 ? (
             <TouchableOpacity
               style={styles.noPaymentNotice}
               onPress={() => navigation.navigate('Settings')}
             >
-              <Text style={styles.noPaymentText}>
-                ⚠️ Belum ada rekening/QRIS terdaftar. Klik di sini untuk tambah.
-              </Text>
+              <AppText style={styles.noPaymentText}>
+                Belum ada rekening/QRIS terdaftar. Klik di sini untuk tambah.
+              </AppText>
             </TouchableOpacity>
           ) : (
             paymentMethods.map((pm) => {
@@ -226,17 +221,17 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
                   onPress={() => toggleMethod(pm.id)}
                 >
                   <View style={[styles.checkbox, isChecked && styles.checkboxActive]}>
-                    {isChecked && <Text style={styles.checkMark}>✓</Text>}
+                    {isChecked && <AppText style={styles.checkMark}>✓</AppText>}
                   </View>
                   <View style={{ flex: 1, marginLeft: 10 }}>
-                    <Text style={styles.paymentName}>{pm.name}</Text>
+                    <AppText style={styles.paymentName}>{pm.name}</AppText>
                     {pm.accountNumber && (
-                      <Text style={styles.paymentDetail}>
+                      <AppText style={styles.paymentDetail}>
                         {pm.accountNumber} {pm.accountName ? `(a.n ${pm.accountName})` : ''}
-                      </Text>
+                      </AppText>
                     )}
                     {pm.type === 'qris' && (
-                      <Text style={styles.paymentDetail}>⚡ Gambar QRIS Statis</Text>
+                      <AppText style={styles.paymentDetail}>Gambar QRIS Statis</AppText>
                     )}
                   </View>
                 </TouchableOpacity>
@@ -248,8 +243,8 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
         {/* Jika ada QRIS terpilih, tampilkan preview untuk memudahkan scan */}
         {qrisMethods.length > 0 && (
           <View style={styles.card}>
-            <Text style={styles.sectionHeader}>Preview QRIS Statis</Text>
-            <Text style={styles.subHint}>Teman bisa langsung scan QRIS ini di layar HP Anda:</Text>
+            <AppText style={styles.sectionHeader}>Preview QRIS Statis</AppText>
+            <AppText style={styles.subHint}>Teman bisa langsung scan QRIS ini di layar HP Anda:</AppText>
             <View style={styles.qrisGallery}>
               {qrisMethods.map((qm) => (
                 <View key={qm.id} style={styles.qrisBox}>
@@ -259,7 +254,7 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
                     contentFit="cover"
                     transition={200}
                   />
-                  <Text style={styles.qrisLabel}>{qm.name}</Text>
+                  <AppText style={styles.qrisLabel}>{qm.name}</AppText>
                 </View>
               ))}
             </View>
@@ -268,45 +263,45 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
 
         {/* Preview Teks Ringkasan */}
         <View style={styles.card}>
-          <Text style={styles.sectionHeader}>Preview Teks WhatsApp / Medsos</Text>
+          <AppText style={styles.sectionHeader}>Preview Teks WhatsApp / Medsos</AppText>
           <View style={styles.textPreviewBox}>
-            <Text style={styles.previewTextContent}>{buildShareText()}</Text>
+            <AppText style={styles.previewTextContent}>{buildShareText()}</AppText>
           </View>
         </View>
 
         {/* Kartu Gambar (yang di-capture saat dibagikan) */}
         <View style={styles.card}>
-          <Text style={styles.sectionHeader}>Preview Gambar Ringkasan</Text>
+          <AppText style={styles.sectionHeader}>Preview Gambar Ringkasan</AppText>
           <View ref={shareCardRef} collapsable={false} style={styles.imageCard}>
-            <Text style={styles.imageCardBrand}>SPLIT BILL BY KEPOX</Text>
-            <Text style={styles.imageCardTitle} numberOfLines={1}>{bill.title}</Text>
-            <Text style={styles.imageCardDate}>{formatDateShortTime(bill.date)}</Text>
+            <AppText style={styles.imageCardBrand}>Split Bill • by KepoX</AppText>
+            <AppText style={styles.imageCardTitle} numberOfLines={1}>{bill.title}</AppText>
+            <AppText style={styles.imageCardDate}>{formatDateShortTime(bill.date)}</AppText>
             <View style={styles.imageCardDivider} />
             {bill.results.map((res) => (
               <View key={res.memberId} style={styles.imageCardRow}>
-                <Text style={styles.imageCardName} numberOfLines={1}>
+                <AppText style={styles.imageCardName} numberOfLines={1}>
                   {res.name}{bill.paidMemberIds?.includes(res.memberId) ? ' ✓' : ''}
-                </Text>
-                <Text style={styles.imageCardAmount}>{formatRupiah(res.totalBayar)}</Text>
+                </AppText>
+                <AppText style={styles.imageCardAmount}>{formatRupiah(res.totalBayar)}</AppText>
               </View>
             ))}
             <View style={styles.imageCardDivider} />
-            <Text style={styles.imageCardTotalLabel}>TOTAL TAGIHAN</Text>
-            <Text style={styles.imageCardTotal}>{formatRupiah(bill.grandTotal)}</Text>
+            <AppText style={styles.imageCardTotalLabel}>Total Tagihan</AppText>
+            <AppText style={styles.imageCardTotal}>{formatRupiah(bill.grandTotal)}</AppText>
           </View>
         </View>
 
         {/* Action Buttons */}
         <TouchableOpacity style={styles.shareBtnPrimary} onPress={handleShareSystem}>
-          <Text style={styles.shareBtnText}>🚀 Bagikan ke WhatsApp / Medsos</Text>
+          <AppText style={styles.shareBtnText}>Bagikan ke WhatsApp / Medsos</AppText>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.copyBtnSecondary} onPress={handleShareImage}>
-          <Text style={styles.copyBtnText}>📸 Bagikan sebagai Gambar</Text>
+          <AppText style={styles.copyBtnText}>Bagikan sebagai Gambar</AppText>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.copyBtnSecondary} onPress={handleCopyText}>
-          <Text style={styles.copyBtnText}>📋 Salin Teks ke Clipboard</Text>
+          <AppText style={styles.copyBtnText}>Salin Teks ke Clipboard</AppText>
         </TouchableOpacity>
       </ScrollView>
 
@@ -333,7 +328,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sectionHeader: { fontSize: 14, fontWeight: '800', color: colors.accent, letterSpacing: 0.8, marginBottom: 4 },
+  sectionHeader: { fontSize: 14, fontWeight: '800', color: colors.accent, letterSpacing: 0.3, marginBottom: 4 },
   linkText: { color: colors.info, fontSize: 12, fontWeight: '700' },
   subHint: { fontSize: 11, color: colors.textSubtle, lineHeight: 16, marginBottom: 12 },
   noPaymentNotice: {
@@ -402,7 +397,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
   },
-  shareBtnText: { color: colors.bg, fontSize: 14, fontWeight: '800', letterSpacing: 0.5 },
+  shareBtnText: { color: colors.bg, fontSize: 14, fontWeight: '800', letterSpacing: 0.2 },
   copyBtnSecondary: {
     backgroundColor: colors.surface,
     paddingVertical: 14,
@@ -411,7 +406,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.accent,
   },
-  copyBtnText: { color: colors.accent, fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  copyBtnText: { color: colors.accent, fontSize: 13, fontWeight: '800', letterSpacing: 0.2 },
   imageCard: {
     backgroundColor: colors.bgAlt,
     borderRadius: 16,
@@ -419,13 +414,13 @@ const styles = StyleSheet.create({
     borderColor: colors.accentBorder,
     padding: 20,
   },
-  imageCardBrand: { color: colors.accent, fontSize: 10, fontWeight: '900', letterSpacing: 2, textAlign: 'center' },
+  imageCardBrand: { color: colors.accent, fontSize: 10, fontWeight: '900', letterSpacing: 0.4, textAlign: 'center' },
   imageCardTitle: { color: colors.text, fontSize: 18, fontWeight: '900', textAlign: 'center', marginTop: 8 },
   imageCardDate: { color: colors.textDim, fontSize: 11, textAlign: 'center', marginTop: 2 },
   imageCardDivider: { height: 1, backgroundColor: colors.border, marginVertical: 14 },
   imageCardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
   imageCardName: { flex: 1, color: colors.text, fontSize: 14, fontWeight: '700', marginRight: 12 },
   imageCardAmount: { color: colors.accent, fontSize: 14, fontWeight: '900' },
-  imageCardTotalLabel: { color: colors.textDim, fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textAlign: 'center' },
+  imageCardTotalLabel: { color: colors.textDim, fontSize: 10, fontWeight: '700', letterSpacing: 0.4, textAlign: 'center' },
   imageCardTotal: { color: colors.accent, fontSize: 28, fontWeight: '900', textAlign: 'center', marginTop: 4 },
 });

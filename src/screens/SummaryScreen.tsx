@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import { View, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../types';
 import { useBillStore } from '../store/billStore';
@@ -14,6 +8,7 @@ import { useCyberAlert } from '../hooks/useCyberAlert';
 import { TopBar } from '../components/TopBar';
 import { colors } from '../theme';
 import { formatMonthDay, formatRupiah } from '../utils/format';
+import { AppText } from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Summary'>;
 
@@ -60,56 +55,56 @@ export const SummaryScreen: React.FC<Props> = ({ navigation, route }) => {
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Ringkasan Keseluruhan Struk */}
         <View style={styles.grandCard}>
-          <Text style={styles.grandCardLabel}>Total Tagihan Struk</Text>
-          <Text style={styles.grandTotalText}>
+          <AppText style={styles.grandCardLabel}>Total Tagihan Struk</AppText>
+          <AppText style={styles.grandTotalText}>
             {formatRupiah(grandTotal)}
-          </Text>
+          </AppText>
 
           <View style={styles.divider} />
 
           <View style={styles.rowBetween}>
-            <Text style={styles.breakdownLabel}>Subtotal Item</Text>
-            <Text style={styles.breakdownVal}>{formatRupiah(subtotal)}</Text>
+            <AppText style={styles.breakdownLabel}>Subtotal Item</AppText>
+            <AppText style={styles.breakdownVal}>{formatRupiah(subtotal)}</AppText>
           </View>
           <View style={styles.rowBetween}>
-            <Text style={styles.breakdownLabel}>Pajak</Text>
-            <Text style={styles.breakdownVal}>{formatRupiah(tax)}</Text>
+            <AppText style={styles.breakdownLabel}>Pajak</AppText>
+            <AppText style={styles.breakdownVal}>{formatRupiah(tax)}</AppText>
           </View>
           <View style={styles.rowBetween}>
-            <Text style={styles.breakdownLabel}>Biaya Layanan</Text>
-            <Text style={styles.breakdownVal}>{formatRupiah(service)}</Text>
+            <AppText style={styles.breakdownLabel}>Biaya Layanan</AppText>
+            <AppText style={styles.breakdownVal}>{formatRupiah(service)}</AppText>
           </View>
           {discount > 0 && (
             <View style={styles.rowBetween}>
-              <Text style={[styles.breakdownLabel, { color: colors.success }]}>Diskon / Promo</Text>
-              <Text style={[styles.breakdownVal, { color: colors.success }]}>- {formatRupiah(discount)}</Text>
+              <AppText style={[styles.breakdownLabel, { color: colors.success }]}>Diskon / Promo</AppText>
+              <AppText style={[styles.breakdownVal, { color: colors.success }]}>- {formatRupiah(discount)}</AppText>
             </View>
           )}
         </View>
 
-        <Text style={styles.sectionTitle}>Rincian Tiap Orang</Text>
+        <AppText style={styles.sectionTitle}>Rincian Tiap Orang</AppText>
 
         {/* Daftar Beban Tiap Anggota */}
         {results.map((res) => (
           <View key={res.memberId} style={styles.personCard}>
             <View style={styles.rowBetween}>
-              <Text style={styles.personName}>👤 {res.name}</Text>
-              <Text style={styles.personTotal}>
+              <AppText style={styles.personName}>{res.name}</AppText>
+              <AppText style={styles.personTotal}>
                 {formatRupiah(res.totalBayar)}
-              </Text>
+              </AppText>
             </View>
 
             <View style={styles.innerBreakdown}>
-              <Text style={styles.innerDetailText}>
+              <AppText style={styles.innerDetailText}>
                 Subtotal Menu: {formatRupiah(res.subtotal)}
-              </Text>
-              <Text style={styles.innerDetailText}>
+              </AppText>
+              <AppText style={styles.innerDetailText}>
                 Pajak + Service: {formatRupiah((res.taxShare + res.serviceShare))}
-              </Text>
+              </AppText>
               {res.discountShare > 0 && (
-                <Text style={[styles.innerDetailText, { color: colors.success }]}>
+                <AppText style={[styles.innerDetailText, { color: colors.success }]}>
                   Diskon: - {formatRupiah(res.discountShare)}
-                </Text>
+                </AppText>
               )}
             </View>
           </View>
@@ -120,7 +115,7 @@ export const SummaryScreen: React.FC<Props> = ({ navigation, route }) => {
           onPress={() => handleSaveAndShare(true)}
           accessibilityRole="button"
         >
-          <Text style={styles.shareButtonText}>⚡ Simpan & Bagikan Tagihan</Text>
+          <AppText style={styles.shareButtonText}>Simpan & Bagikan Tagihan</AppText>
         </Pressable>
 
         <Pressable
@@ -128,7 +123,7 @@ export const SummaryScreen: React.FC<Props> = ({ navigation, route }) => {
           onPress={() => handleSaveAndShare(false)}
           accessibilityRole="button"
         >
-          <Text style={styles.saveButtonText}>💾 Simpan ke Riwayat Saja</Text>
+          <AppText style={styles.saveButtonText}>Simpan ke Riwayat Saja</AppText>
         </Pressable>
 
         <Pressable
@@ -136,7 +131,7 @@ export const SummaryScreen: React.FC<Props> = ({ navigation, route }) => {
           onPress={() => navigation.navigate('Home')}
           accessibilityRole="button"
         >
-          <Text style={styles.homeButtonText}>Kembali ke Halaman Utama</Text>
+          <AppText style={styles.homeButtonText}>Kembali ke Halaman Utama</AppText>
         </Pressable>
       </ScrollView>
       {cyberAlertModal}
@@ -155,13 +150,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.accentBorder,
   },
-  grandCardLabel: { color: colors.textDim, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: '700' },
-  grandTotalText: { color: colors.accent, fontSize: 32, fontWeight: '900', marginTop: 6, letterSpacing: 0.5 },
+  grandCardLabel: { color: colors.textDim, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, fontWeight: '700' },
+  grandTotalText: { color: colors.accent, fontSize: 32, fontWeight: '900', marginTop: 6, letterSpacing: 0.2 },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: 14 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   breakdownLabel: { color: colors.textFaint, fontSize: 13, marginBottom: 4 },
   breakdownVal: { color: colors.text, fontSize: 13, fontWeight: '700' },
-  sectionTitle: { fontSize: 15, fontWeight: '800', color: colors.text, marginBottom: 12, letterSpacing: 0.5 },
+  sectionTitle: { fontSize: 15, fontWeight: '800', color: colors.text, marginBottom: 12, letterSpacing: 0.2 },
   personCard: {
     backgroundColor: colors.surface,
     borderRadius: 12,
@@ -188,7 +183,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
   },
-  shareButtonText: { color: colors.ink, fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
+  shareButtonText: { color: colors.ink, fontSize: 15, fontWeight: '800', letterSpacing: 0.2 },
   saveButton: {
     backgroundColor: colors.accent,
     padding: 16,
@@ -197,11 +192,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   buttonPressed: { opacity: 0.75 },
-  saveButtonText: { color: colors.ink, fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
+  saveButtonText: { color: colors.ink, fontSize: 15, fontWeight: '800', letterSpacing: 0.2 },
   homeButton: {
     padding: 16,
     alignItems: 'center',
     marginBottom: 40,
   },
-  homeButtonText: { color: colors.textDim, fontSize: 13, fontWeight: '600', letterSpacing: 0.5 },
+  homeButtonText: { color: colors.textDim, fontSize: 13, fontWeight: '600', letterSpacing: 0.2 },
 });

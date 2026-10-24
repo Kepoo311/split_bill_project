@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Switch,
-  ActivityIndicator,
-} from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, ScrollView, Switch, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -25,6 +16,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CyberModal } from '../components/CyberModal';
 import { TopBar } from '../components/TopBar';
 import { colors } from '../theme';
+import { AppText } from '../components/AppText';
+import { Ionicons } from '@expo/vector-icons';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
@@ -165,9 +158,9 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     setUpdateStatus('');
     const result = await useUpdateStore.getState().checkAndFetch();
     const messages: Record<UpdateResult, string> = {
-      uptodate: '✅ Kamu sudah memakai versi terbaru.',
-      ready: '⬇️ Pembaruan terunduh — buka Beranda lalu tap "Restart" untuk memasang.',
-      error: '⚠️ Gagal memeriksa pembaruan. Pastikan internet aktif lalu coba lagi.',
+      uptodate: 'Kamu sudah memakai versi terbaru.',
+      ready: 'Pembaruan terunduh — ketuk "Pasang" untuk memasang versi baru.',
+      error: 'Gagal memeriksa pembaruan. Pastikan internet aktif lalu coba lagi.',
       disabled: 'Pembaruan OTA tidak aktif di build pengembangan.',
     };
     setUpdateStatus(messages[result]);
@@ -226,10 +219,10 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Form Tambah Pembayaran */}
         <View style={styles.card}>
-          <Text style={styles.sectionHeader}>Tambah Info Pembayaran</Text>
-          <Text style={styles.subHint}>
+          <AppText style={styles.sectionHeader}>Tambah Info Pembayaran</AppText>
+          <AppText style={styles.subHint}>
             Informasi ini disimpan offline di HP dan akan otomatis dicantumkan saat menagih teman.
-          </Text>
+          </AppText>
 
           {/* Tab Selector Jenis */}
           <View style={styles.typeSelector}>
@@ -239,14 +232,14 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                 style={[styles.typeButton, methodType === t && styles.typeButtonActive]}
                 onPress={() => setMethodType(t)}
               >
-                <Text style={[styles.typeText, methodType === t && styles.typeTextActive]}>
-                  {t === 'bank' ? '🏦 Bank' : t === 'ewallet' ? '📱 E-Wallet' : '⚡ QRIS'}
-                </Text>
+                <AppText style={[styles.typeText, methodType === t && styles.typeTextActive]}>
+                  {t === 'bank' ? 'Bank' : t === 'ewallet' ? 'E-Wallet' : 'QRIS'}
+                </AppText>
               </TouchableOpacity>
             ))}
           </View>
 
-          <Text style={styles.fieldLabel}>Nama Penyedia / Label</Text>
+          <AppText style={styles.fieldLabel}>Nama Penyedia / Label</AppText>
           <TextInput
             style={styles.input}
             placeholder={methodType === 'bank' ? 'Contoh: BCA / Mandiri / Jago' : methodType === 'ewallet' ? 'Contoh: GoPay / Dana / OVO' : 'Contoh: QRIS Toko / QRIS Pribadi'}
@@ -257,7 +250,7 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
           {methodType !== 'qris' && (
             <>
-              <Text style={styles.fieldLabel}>Nomor Rekening / No. HP E-Wallet</Text>
+              <AppText style={styles.fieldLabel}>Nomor Rekening / No. HP E-Wallet</AppText>
               <TextInput
                 style={styles.input}
                 placeholder="1234567890 / 08123456789"
@@ -267,7 +260,7 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                 onChangeText={setAccountNumber}
               />
 
-              <Text style={styles.fieldLabel}>Atas Nama (A/N)</Text>
+              <AppText style={styles.fieldLabel}>Atas Nama (A/N)</AppText>
               <TextInput
                 style={styles.input}
                 placeholder="Contoh: Niko Andrean"
@@ -280,7 +273,7 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
           {methodType === 'qris' && (
             <View style={styles.qrisUploadWrap}>
-              <Text style={styles.fieldLabel}>Gambar QRIS Statis</Text>
+              <AppText style={styles.fieldLabel}>Gambar QRIS Statis</AppText>
               {qrisImageUri ? (
                 <View style={styles.qrisPreviewWrap}>
                   <Image
@@ -290,44 +283,44 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                     transition={200}
                   />
                   <TouchableOpacity style={styles.qrisChangeBtn} onPress={handlePickQrisImage}>
-                    <Text style={styles.qrisChangeText}>Ganti Foto QRIS</Text>
+                    <AppText style={styles.qrisChangeText}>Ganti Foto QRIS</AppText>
                   </TouchableOpacity>
                 </View>
               ) : (
                 <TouchableOpacity style={styles.uploadPlaceholder} onPress={handlePickQrisImage}>
-                  <Text style={styles.uploadIcon}>📷</Text>
-                  <Text style={styles.uploadText}>Pilih Foto QRIS dari Galeri</Text>
+                  <Ionicons name="camera-outline" size={22} color={colors.accent} />
+                  <AppText style={styles.uploadText}>Pilih Foto QRIS dari Galeri</AppText>
                 </TouchableOpacity>
               )}
             </View>
           )}
 
           <TouchableOpacity style={styles.btnSave} onPress={handleAddPayment}>
-            <Text style={styles.btnSaveText}>+ Simpan Rekening / QRIS</Text>
+            <AppText style={styles.btnSaveText}>+ Simpan Rekening / QRIS</AppText>
           </TouchableOpacity>
         </View>
 
         {/* List Pembayaran Terdaftar */}
-        <Text style={styles.sectionTitle}>Rekening & QRIS Tersimpan</Text>
+        <AppText style={styles.sectionTitle}>Rekening & QRIS Tersimpan</AppText>
         {paymentMethods.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}>Belum ada info rekening/QRIS tersimpan.</Text>
+            <AppText style={styles.emptyText}>Belum ada info rekening/QRIS tersimpan.</AppText>
           </View>
         ) : (
           paymentMethods.map((pm) => (
             <View key={pm.id} style={styles.paymentCard}>
               <View style={{ flex: 1 }}>
                 <View style={styles.paymentCardHeader}>
-                  <Text style={styles.paymentBadge}>
+                  <AppText style={styles.paymentBadge}>
                     {pm.type === 'bank' ? 'BANK' : pm.type === 'ewallet' ? 'E-WALLET' : 'QRIS'}
-                  </Text>
-                  <Text style={styles.paymentName}>{pm.name}</Text>
+                  </AppText>
+                  <AppText style={styles.paymentName}>{pm.name}</AppText>
                 </View>
                 {pm.accountNumber && (
-                  <Text style={styles.paymentAccount}>{pm.accountNumber}</Text>
+                  <AppText style={styles.paymentAccount}>{pm.accountNumber}</AppText>
                 )}
                 {pm.accountName && (
-                  <Text style={styles.paymentHolder}>a.n {pm.accountName}</Text>
+                  <AppText style={styles.paymentHolder}>a.n {pm.accountName}</AppText>
                 )}
                 {pm.type === 'qris' && pm.qrisImageUri && (
                   <Image
@@ -343,22 +336,22 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                 style={styles.deleteBtn}
                 onPress={() => handleDeletePayment(pm.id)}
               >
-                <Text style={styles.deleteBtnText}>Hapus</Text>
+                <AppText style={styles.deleteBtnText}>Hapus</AppText>
               </TouchableOpacity>
             </View>
           ))
         )}
 
         {/* Section Pembaruan Aplikasi */}
-        <Text style={styles.sectionTitle}>Pembaruan Aplikasi</Text>
+        <AppText style={styles.sectionTitle}>Pembaruan Aplikasi</AppText>
         <View style={styles.card}>
           <View style={styles.updateRow}>
             <View style={styles.updateTextWrap}>
-              <Text style={styles.updateLabel}>Update Otomatis</Text>
-              <Text style={styles.subHint}>
+              <AppText style={styles.updateLabel}>Update Otomatis</AppText>
+              <AppText style={styles.subHint}>
                 Aktif: app mengecek & mengunduh pembaruan di background setiap dibuka. Mati:
                 pembaruan hanya dicek lewat tombol di bawah.
-              </Text>
+              </AppText>
             </View>
             <Switch
               value={autoUpdate}
@@ -373,7 +366,7 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
               style={styles.restartBtn}
               onPress={() => useUpdateStore.getState().applyUpdate()}
             >
-              <Text style={styles.restartBtnText}>↻ Mulai Ulang Sekarang</Text>
+              <AppText style={styles.restartBtnText}>↻ Mulai Ulang Sekarang</AppText>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -383,34 +376,34 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             >
               {isChecking || isDownloading ? (
                 <View style={styles.checkBtnLoading}>
-                  <ActivityIndicator size="small" color="#070A10" />
-                  <Text style={styles.checkBtnText}>
+                  <ActivityIndicator size="small" color={colors.ink} />
+                  <AppText style={styles.checkBtnText}>
                     {isChecking ? 'Memeriksa...' : 'Mengunduh...'}
-                  </Text>
+                  </AppText>
                 </View>
               ) : (
-                <Text style={styles.checkBtnText}>Cek Pembaruan Sekarang</Text>
+                <AppText style={styles.checkBtnText}>Cek Pembaruan Sekarang</AppText>
               )}
             </TouchableOpacity>
           )}
 
-          {updateStatus ? <Text style={styles.updateStatus}>{updateStatus}</Text> : null}
-          <Text style={styles.versionInfo}>
+          {updateStatus ? <AppText style={styles.updateStatus}>{updateStatus}</AppText> : null}
+          <AppText style={styles.versionInfo}>
             Versi {CHANGELOG[0].version} • Channel {Updates.channel ?? '-'}
-          </Text>
+          </AppText>
         </View>
 
         {/* Section Keamanan */}
-        <Text style={styles.sectionTitle}>Keamanan</Text>
+        <AppText style={styles.sectionTitle}>Keamanan</AppText>
         <View style={styles.card}>
           <View style={styles.updateRow}>
             <View style={styles.updateTextWrap}>
-              <Text style={styles.updateLabel}>Kunci Biometrik</Text>
-              <Text style={styles.subHint}>
+              <AppText style={styles.updateLabel}>Kunci Biometrik</AppText>
+              <AppText style={styles.subHint}>
                 {biometricsAvailable
                   ? 'Verifikasi sidik jari/wajah/PIN setiap kali membuka aplikasi.'
                   : 'Perangkat belum mengatur sidik jari/wajah/PIN — atur dulu di Pengaturan HP untuk mengaktifkan ini.'}
-              </Text>
+              </AppText>
             </View>
             <Switch
               value={biometricLock && biometricsAvailable}
@@ -423,18 +416,18 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         </View>
 
         {/* Section Data & Backup */}
-        <Text style={styles.sectionTitle}>Data &amp; Backup</Text>
+        <AppText style={styles.sectionTitle}>Data &amp; Backup</AppText>
         <View style={styles.card}>
-          <Text style={styles.subHint}>
+          <AppText style={styles.subHint}>
             Semua data tersimpan offline di HP ini. Ekspor rutin ke file backup
             menyelamatkan riwayatmu saat ganti HP atau uninstall. Impor dilakukan
             dengan menyalin isi file backup lalu tap tombol impor.
-          </Text>
+          </AppText>
           <TouchableOpacity style={styles.checkBtn} onPress={handleExport}>
-            <Text style={styles.checkBtnText}>⬆️ Ekspor Data (.json)</Text>
+            <AppText style={styles.checkBtnText}>Ekspor Data (.json)</AppText>
           </TouchableOpacity>
           <TouchableOpacity style={styles.restartBtn} onPress={handleImport}>
-            <Text style={styles.restartBtnText}>⬇️ Impor dari Clipboard</Text>
+            <AppText style={styles.restartBtnText}>Impor dari Clipboard</AppText>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -461,7 +454,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     marginBottom: 20,
   },
-  sectionHeader: { fontSize: 14, fontWeight: '800', color: colors.accent, letterSpacing: 0.8, marginBottom: 4 },
+  sectionHeader: { fontSize: 14, fontWeight: '800', color: colors.accent, letterSpacing: 0.3, marginBottom: 4 },
   subHint: { fontSize: 11, color: colors.textSubtle, lineHeight: 16, marginBottom: 14 },
   typeSelector: {
     flexDirection: 'row',
@@ -485,6 +478,7 @@ const styles = StyleSheet.create({
   typeTextActive: { color: colors.accent },
   fieldLabel: { fontSize: 11, fontWeight: '700', color: colors.textMuted, marginTop: 10, marginBottom: 6, textTransform: 'uppercase' },
   input: {
+    fontFamily: 'IBMPlexSans_400Regular',
     backgroundColor: colors.bg,
     borderWidth: 1,
     borderColor: colors.border,
@@ -517,8 +511,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 18,
   },
-  btnSaveText: { color: colors.bg, fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
-  sectionTitle: { fontSize: 14, fontWeight: '800', color: colors.text, marginBottom: 10, letterSpacing: 0.5 },
+  btnSaveText: { color: colors.bg, fontSize: 13, fontWeight: '800', letterSpacing: 0.2 },
+  sectionTitle: { fontSize: 14, fontWeight: '800', color: colors.text, marginBottom: 10, letterSpacing: 0.2 },
   emptyBox: {
     padding: 20,
     backgroundColor: colors.surface,
@@ -551,7 +545,7 @@ const styles = StyleSheet.create({
     borderColor: colors.accentBorder,
   },
   paymentName: { fontSize: 14, fontWeight: '800', color: colors.text },
-  paymentAccount: { fontSize: 14, fontWeight: '700', color: colors.info, letterSpacing: 0.5 },
+  paymentAccount: { fontSize: 14, fontWeight: '700', color: colors.info, letterSpacing: 0.2 },
   paymentHolder: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
   qrisThumbSmall: { width: 60, height: 60, borderRadius: 6, marginTop: 6, borderWidth: 1, borderColor: colors.line },
   deleteBtn: {
@@ -574,7 +568,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   checkBtnLoading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  checkBtnText: { color: colors.bg, fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  checkBtnText: { color: colors.bg, fontSize: 13, fontWeight: '800', letterSpacing: 0.2 },
   restartBtn: {
     backgroundColor: colors.infoSoft,
     borderWidth: 1,
@@ -584,7 +578,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 14,
   },
-  restartBtnText: { color: colors.info, fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  restartBtnText: { color: colors.info, fontSize: 13, fontWeight: '800', letterSpacing: 0.2 },
   updateStatus: { color: colors.textMuted, fontSize: 11, marginTop: 10, lineHeight: 16 },
   versionInfo: { color: '#8FA0BC', fontSize: 10, marginTop: 10, letterSpacing: 0.3 },
   btnDisabled: { opacity: 0.6 },

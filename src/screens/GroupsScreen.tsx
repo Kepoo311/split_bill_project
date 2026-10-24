@@ -1,13 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Pressable,
-  FlatList,
-  StyleSheet,
-} from 'react-native';
+import { View, TextInput, TouchableOpacity, Pressable, FlatList, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
@@ -15,6 +7,8 @@ import { TopBar } from '../components/TopBar';
 import { CyberModal } from '../components/CyberModal';
 import { useGroupStore } from '../store/groupStore';
 import { colors } from '../theme';
+import { AppText } from '../components/AppText';
+import { Ionicons } from '@expo/vector-icons';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Groups'>;
 
@@ -35,12 +29,12 @@ function GroupCardBase({ name, memberCount, billCount, onPress, onDelete }: Grou
       accessibilityLabel={`Buka grup ${name}, ${memberCount} anggota, ${billCount} struk`}
     >
       <View style={{ flex: 1 }}>
-        <Text style={styles.cardTitle} numberOfLines={1}>
-          👥 {name}
-        </Text>
-        <Text style={styles.cardMeta}>
+        <AppText style={styles.cardTitle} numberOfLines={1}>
+          {name}
+        </AppText>
+        <AppText style={styles.cardMeta}>
           {memberCount} anggota • {billCount} struk
-        </Text>
+        </AppText>
       </View>
       <TouchableOpacity
         style={styles.deleteBtn}
@@ -49,7 +43,7 @@ function GroupCardBase({ name, memberCount, billCount, onPress, onDelete }: Grou
         accessibilityRole="button"
         accessibilityLabel={`Hapus grup ${name}`}
       >
-        <Text style={styles.deleteBtnText}>Hapus</Text>
+        <AppText style={styles.deleteBtnText}>Hapus</AppText>
       </TouchableOpacity>
     </Pressable>
   );
@@ -106,18 +100,18 @@ export const GroupsScreen: React.FC<Props> = ({ navigation }) => {
             accessibilityRole="button"
             accessibilityLabel="Buat grup patungan baru"
           >
-            <Text style={styles.addBtnText}>＋ Buat Grup Patungan</Text>
+            <AppText style={styles.addBtnText}>＋ Buat Grup Patungan</AppText>
           </TouchableOpacity>
         }
         ListEmptyComponent={
           <View style={styles.emptyBox}>
-            <Text style={styles.emptyIcon}>👥</Text>
-            <Text style={styles.emptyText}>Belum ada grup</Text>
-            <Text style={styles.emptySubtext}>
+            <Ionicons name="people-outline" size={26} color={colors.accent} />
+            <AppText style={styles.emptyText}>Belum ada grup</AppText>
+            <AppText style={styles.emptySubtext}>
               Grup patungan mengumpulkan banyak struk jadi satu saldo berjalan
               (mis. kosan atau tim futsal) — siapa nalangin, siapa berutang,
               terhitung otomatis.
-            </Text>
+            </AppText>
           </View>
         }
         renderItem={({ item }) => (
@@ -133,7 +127,7 @@ export const GroupsScreen: React.FC<Props> = ({ navigation }) => {
 
       <CyberModal
         visible={showCreate}
-        title="GRUP BARU"
+        title="Grup Baru"
         message="Nama grup patungan:"
         onClose={() => setShowCreate(false)}
         buttons={[
@@ -153,7 +147,7 @@ export const GroupsScreen: React.FC<Props> = ({ navigation }) => {
 
       <CyberModal
         visible={pendingDelete !== null}
-        title="HAPUS GRUP"
+        title="Hapus Grup"
         message={`Yakin hapus grup "${pendingGroup?.name ?? ''}"? Struk di riwayat TIDAK ikut terhapus — hanya catatan grupnya yang hilang.`}
         onClose={() => setPendingDelete(null)}
         buttons={[
@@ -201,7 +195,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
     justifyContent: 'center',
   },
-  addBtnText: { color: colors.accent, fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  addBtnText: { color: colors.accent, fontSize: 13, fontWeight: '800', letterSpacing: 0.2 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -237,6 +231,7 @@ const styles = StyleSheet.create({
   emptyText: { color: colors.text, fontSize: 14, fontWeight: '800', marginBottom: 6 },
   emptySubtext: { color: colors.textDim, fontSize: 11, textAlign: 'center', lineHeight: 17 },
   input: {
+    fontFamily: 'IBMPlexSans_400Regular',
     backgroundColor: colors.bg,
     borderWidth: 1,
     borderColor: colors.line,

@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Pressable,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import { View, TextInput, TouchableOpacity, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
@@ -19,6 +11,7 @@ import { CyberModal } from '../components/CyberModal';
 import { colors } from '../theme';
 import { mergeGroupMembers } from '../utils/groupBalance';
 import { formatRupiah, formatDateLong } from '../utils/format';
+import { AppText } from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HistoryDetail'>;
 
@@ -158,7 +151,7 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         onBack={() => navigation.goBack()}
         right={
           <Pressable onPress={handleDelete} hitSlop={10} accessibilityRole="button" accessibilityLabel="Hapus riwayat">
-            <Text style={styles.deleteTopText}>Hapus</Text>
+            <AppText style={styles.deleteTopText}>Hapus</AppText>
           </Pressable>
         }
       />
@@ -168,12 +161,12 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         <View style={styles.mainCard}>
           <View style={styles.tagRow}>
             <View style={styles.hudBadge}>
-              <Text style={styles.hudBadgeText}>ID #{currentBill.id.slice(-6)}</Text>
+              <AppText style={styles.hudBadgeText}>ID #{currentBill.id.slice(-6)}</AppText>
             </View>
             <View style={[styles.statusBadge, isAllPaid ? styles.paidBadge : styles.unpaidBadge]}>
-              <Text style={[styles.statusBadgeText, isAllPaid ? styles.paidBadgeText : styles.unpaidBadgeText]}>
+              <AppText style={[styles.statusBadgeText, isAllPaid ? styles.paidBadgeText : styles.unpaidBadgeText]}>
                 {isAllPaid ? '✓ SEMUA LUNAS' : `${paidCount}/${totalMembers} TERBAYAR`}
-              </Text>
+              </AppText>
             </View>
           </View>
 
@@ -191,53 +184,53 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                 onSubmitEditing={handleSaveTitle}
               />
               <Pressable style={styles.titleSaveBtn} onPress={handleSaveTitle}>
-                <Text style={styles.titleSaveText}>Simpan</Text>
+                <AppText style={styles.titleSaveText}>Simpan</AppText>
               </Pressable>
               <Pressable
                 style={styles.titleCancelBtn}
                 onPress={() => setIsEditingTitle(false)}
               >
-                <Text style={styles.titleCancelText}>Batal</Text>
+                <AppText style={styles.titleCancelText}>Batal</AppText>
               </Pressable>
             </View>
           ) : (
             <View style={styles.titleRow}>
-              <Text style={styles.billTitle} numberOfLines={2}>
+              <AppText style={styles.billTitle} numberOfLines={2}>
                 {currentBill.title}
-              </Text>
+              </AppText>
               <Pressable style={styles.titleEditBtn} onPress={handleStartEditTitle} hitSlop={8}>
-                <Text style={styles.titleEditIcon}>✏️</Text>
+                <AppText style={styles.titleEditIcon}>✏️</AppText>
               </Pressable>
             </View>
           )}
-          <Text style={styles.billDate}>
+          <AppText style={styles.billDate}>
             {formatDateLong(currentBill.date)}
-          </Text>
+          </AppText>
 
           <View style={styles.grandDivider} />
 
-          <Text style={styles.grandLabel}>TOTAL TRANSAKSI</Text>
-          <Text style={styles.grandValue}>{formatRupiah(currentBill.grandTotal)}</Text>
+          <AppText style={styles.grandLabel}>Total Transaksi</AppText>
+          <AppText style={styles.grandValue}>{formatRupiah(currentBill.grandTotal)}</AppText>
 
           {/* Breakdown summary */}
           <View style={styles.summaryGrid}>
             <View style={styles.gridItem}>
-              <Text style={styles.gridLabel}>Pajak</Text>
-              <Text style={styles.gridVal}>{formatRupiah(currentBill.tax)}</Text>
+              <AppText style={styles.gridLabel}>Pajak</AppText>
+              <AppText style={styles.gridVal}>{formatRupiah(currentBill.tax)}</AppText>
             </View>
             <View style={styles.gridItem}>
-              <Text style={styles.gridLabel}>Service</Text>
-              <Text style={styles.gridVal}>{formatRupiah(currentBill.service)}</Text>
+              <AppText style={styles.gridLabel}>Service</AppText>
+              <AppText style={styles.gridVal}>{formatRupiah(currentBill.service)}</AppText>
             </View>
             <View style={styles.gridItem}>
-              <Text style={styles.gridLabel}>Diskon</Text>
-              <Text style={styles.gridVal}>-{formatRupiah((currentBill.discount || 0))}</Text>
+              <AppText style={styles.gridLabel}>Diskon</AppText>
+              <AppText style={styles.gridVal}>-{formatRupiah((currentBill.discount || 0))}</AppText>
             </View>
           </View>
 
           {/* Kategori Selector */}
           <View style={styles.categoryRow}>
-            <Text style={styles.categoryLabel}>Kategori:</Text>
+            <AppText style={styles.categoryLabel}>Kategori:</AppText>
             <View style={styles.categoryChips}>
               {categories.map((c) => {
                 const isSelected = (currentBill.category || 'Makanan') === c;
@@ -247,9 +240,9 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                     style={[styles.catChip, isSelected && styles.catChipSelected]}
                     onPress={() => handleSetCategory(c)}
                   >
-                    <Text style={[styles.catChipText, isSelected && styles.catChipTextSelected]}>
+                    <AppText style={[styles.catChipText, isSelected && styles.catChipTextSelected]}>
                       {c}
-                    </Text>
+                    </AppText>
                   </TouchableOpacity>
                 );
               })}
@@ -261,7 +254,7 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             style={styles.shareBtn}
             onPress={() => navigation.navigate('ShareBill', { bill: currentBill })}
           >
-            <Text style={styles.shareBtnText}>⚡ BAGIKAN KE WHATSAPP / MEDSOS</Text>
+            <AppText style={styles.shareBtnText}>Bagikan ke WhatsApp / Medsos</AppText>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -270,14 +263,14 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             accessibilityRole="button"
             accessibilityLabel="Tambahkan struk ini ke grup patungan"
           >
-            <Text style={styles.addToGroupBtnText}>👥 TAMBAHKAN KE GRUP PATUNGAN</Text>
+            <AppText style={styles.addToGroupBtnText}>Tambahkan ke Grup Patungan</AppText>
           </TouchableOpacity>
         </View>
 
         {/* Member Payment Status Checklist */}
         <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>STATUS PEMBAYARAN ANGGOTA</Text>
-          <Text style={styles.sectionSubtitle}>Tap kotak untuk checklist</Text>
+          <AppText style={styles.sectionTitle}>Status Pembayaran Anggota</AppText>
+          <AppText style={styles.sectionSubtitle}>Tap kotak untuk checklist</AppText>
         </View>
 
         {currentBill.results.map((res) => {
@@ -291,25 +284,25 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             >
               <View style={styles.memberLeft}>
                 <View style={[styles.checkbox, isPaid && styles.checkboxActive]}>
-                  {isPaid ? <Text style={styles.checkmark}>✓</Text> : null}
+                  {isPaid ? <AppText style={styles.checkmark}>✓</AppText> : null}
                 </View>
                 <View style={{ marginLeft: 12 }}>
-                  <Text style={[styles.memberName, isPaid && styles.memberNamePaid]}>
+                  <AppText style={[styles.memberName, isPaid && styles.memberNamePaid]}>
                     {res.name}
-                  </Text>
-                  <Text style={styles.memberShareDetail}>
+                  </AppText>
+                  <AppText style={styles.memberShareDetail}>
                     Menu: {formatRupiah(res.subtotal)} + Extra: {formatRupiah((res.taxShare + res.serviceShare))}
-                  </Text>
+                  </AppText>
                 </View>
               </View>
 
               <View style={styles.memberRight}>
-                <Text style={[styles.memberAmount, isPaid && styles.memberAmountPaid]}>
+                <AppText style={[styles.memberAmount, isPaid && styles.memberAmountPaid]}>
                   {formatRupiah(res.totalBayar)}
-                </Text>
-                <Text style={[styles.payStatusText, isPaid ? styles.textPaid : styles.textPending]}>
+                </AppText>
+                <AppText style={[styles.payStatusText, isPaid ? styles.textPaid : styles.textPending]}>
                   {isPaid ? 'LUNAS' : 'BELUM BAYAR'}
-                </Text>
+                </AppText>
               </View>
             </TouchableOpacity>
           );
@@ -317,7 +310,7 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
         {/* Daftar Menu / Item */}
         <View style={[styles.sectionHeaderRow, { marginTop: 24 }]}>
-          <Text style={styles.sectionTitle}>RINCIAN MENU STRUK</Text>
+          <AppText style={styles.sectionTitle}>Rincian Menu Struk</AppText>
         </View>
 
         <View style={styles.itemsCard}>
@@ -336,14 +329,14 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                 ]}
               >
                 <View style={{ flex: 1, marginRight: 8 }}>
-                  <Text style={styles.itemName}>{item.nama_item}</Text>
+                  <AppText style={styles.itemName}>{item.nama_item}</AppText>
                   {assignedNames ? (
-                    <Text style={styles.itemAssigned}>👥 {assignedNames}</Text>
+                    <AppText style={styles.itemAssigned}>{assignedNames}</AppText>
                   ) : (
-                    <Text style={styles.itemUnassigned}>⚠️ Belum ditugaskan</Text>
+                    <AppText style={styles.itemUnassigned}>Belum ditugaskan</AppText>
                   )}
                 </View>
-                <Text style={styles.itemPrice}>{formatRupiah(item.harga)}</Text>
+                <AppText style={styles.itemPrice}>{formatRupiah(item.harga)}</AppText>
               </View>
             );
           })}
@@ -354,7 +347,7 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       {/* Pilih grup tujuan */}
       <CyberModal
         visible={showGroupPicker}
-        title="TAMBAH KE GRUP"
+        title="Tambah ke Grup"
         message="Struk ini ikut dihitung dalam saldo grup yang dipilih."
         onClose={() => setShowGroupPicker(false)}
         buttons={[{ text: 'Tutup', style: 'cancel' }]}
@@ -370,12 +363,12 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             accessibilityRole="button"
             accessibilityLabel={`Tambah ke grup ${g.name}`}
           >
-            <Text style={styles.groupPickerTitle} numberOfLines={1}>
-              👥 {g.name}
-            </Text>
-            <Text style={styles.groupPickerMeta}>
+            <AppText style={styles.groupPickerTitle} numberOfLines={1}>
+              {g.name}
+            </AppText>
+            <AppText style={styles.groupPickerMeta}>
               {g.members.length} anggota • {g.entries.length} struk
-            </Text>
+            </AppText>
           </TouchableOpacity>
         ))}
         <TextInput
@@ -387,7 +380,7 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           maxLength={40}
         />
         <TouchableOpacity style={styles.groupPickerCreate} onPress={handleCreateAndAdd}>
-          <Text style={styles.addToGroupBtnText}>＋ Buat Grup Baru</Text>
+          <AppText style={styles.addToGroupBtnText}>＋ Buat Grup Baru</AppText>
         </TouchableOpacity>
       </CyberModal>
 
@@ -405,16 +398,16 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             style={styles.groupPickerRow}
             onPress={() => handleAddToGroup(m.id)}
           >
-            <Text style={styles.groupPickerTitle}>{m.name}</Text>
+            <AppText style={styles.groupPickerTitle}>{m.name}</AppText>
           </TouchableOpacity>
         ))}
         <TouchableOpacity
           style={[styles.groupPickerRow, { borderColor: colors.line, borderStyle: 'dashed' }]}
           onPress={() => handleAddToGroup(null)}
         >
-          <Text style={[styles.groupPickerTitle, { color: colors.textDim }]}>
+          <AppText style={[styles.groupPickerTitle, { color: colors.textDim }]}>
             Tidak dicatat (bayar masing-masing)
-          </Text>
+          </AppText>
         </TouchableOpacity>
       </CyberModal>
 
@@ -449,7 +442,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 6,
   },
-  hudBadgeText: { color: colors.accent, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  hudBadgeText: { color: colors.accent, fontSize: 11, fontWeight: '800', letterSpacing: 0.3 },
   statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -457,7 +450,7 @@ const styles = StyleSheet.create({
   },
   paidBadge: { backgroundColor: colors.successSoft, borderWidth: 1, borderColor: colors.success },
   unpaidBadge: { backgroundColor: colors.warningSoft, borderWidth: 1, borderColor: colors.warning },
-  statusBadgeText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
+  statusBadgeText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.2 },
   paidBadgeText: { color: colors.success },
   unpaidBadgeText: { color: colors.warning },
   billTitle: { fontSize: 20, fontWeight: '900', color: colors.text, marginTop: 12, flex: 1 },
@@ -479,6 +472,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   titleInput: {
+    fontFamily: 'IBMPlexSans_700Bold',
     flex: 1,
     backgroundColor: colors.bg,
     borderWidth: 1,
@@ -507,8 +501,8 @@ const styles = StyleSheet.create({
   titleCancelText: { color: colors.textMuted, fontSize: 12, fontWeight: '700' },
   billDate: { fontSize: 12, color: colors.textDim, marginTop: 2 },
   grandDivider: { height: 1, backgroundColor: colors.border, marginVertical: 14 },
-  grandLabel: { fontSize: 11, color: colors.textDim, fontWeight: '700', letterSpacing: 1.5 },
-  grandValue: { fontSize: 28, fontWeight: '900', color: colors.accent, marginTop: 4, letterSpacing: 0.5 },
+  grandLabel: { fontSize: 11, color: colors.textDim, fontWeight: '700', letterSpacing: 0.4 },
+  grandValue: { fontSize: 28, fontWeight: '900', color: colors.accent, marginTop: 4, letterSpacing: 0.2 },
   summaryGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -557,7 +551,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  shareBtnText: { color: colors.bg, fontSize: 12, fontWeight: '900', letterSpacing: 0.5 },
+  shareBtnText: { color: colors.bg, fontSize: 12, fontWeight: '900', letterSpacing: 0.2 },
   addToGroupBtn: {
     backgroundColor: colors.accentSoft,
     borderWidth: 1,
@@ -569,7 +563,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     justifyContent: 'center',
   },
-  addToGroupBtnText: { color: colors.accent, fontSize: 12, fontWeight: '900', letterSpacing: 0.5 },
+  addToGroupBtnText: { color: colors.accent, fontSize: 12, fontWeight: '900', letterSpacing: 0.2 },
   groupPickerRow: {
     backgroundColor: colors.bg,
     borderWidth: 1,
@@ -583,6 +577,7 @@ const styles = StyleSheet.create({
   groupPickerTitle: { fontSize: 13, fontWeight: '700', color: colors.text },
   groupPickerMeta: { fontSize: 10, color: colors.textDim, marginTop: 2 },
   groupPickerInput: {
+    fontFamily: 'IBMPlexSans_400Regular',
     backgroundColor: colors.bg,
     borderWidth: 1,
     borderColor: colors.line,
@@ -607,7 +602,7 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
     marginBottom: 10,
   },
-  sectionTitle: { fontSize: 13, fontWeight: '800', color: colors.accent, letterSpacing: 1 },
+  sectionTitle: { fontSize: 13, fontWeight: '800', color: colors.accent, letterSpacing: 0.3 },
   sectionSubtitle: { fontSize: 11, color: colors.textDim },
   memberCard: {
     backgroundColor: colors.surface,
@@ -646,7 +641,7 @@ const styles = StyleSheet.create({
   memberRight: { alignItems: 'flex-end', marginLeft: 8 },
   memberAmount: { fontSize: 15, fontWeight: '900', color: colors.accent },
   memberAmountPaid: { color: colors.success },
-  payStatusText: { fontSize: 10, fontWeight: '800', marginTop: 3, letterSpacing: 0.5 },
+  payStatusText: { fontSize: 10, fontWeight: '800', marginTop: 3, letterSpacing: 0.2 },
   textPaid: { color: colors.success },
   textPending: { color: colors.warning },
   itemsCard: {

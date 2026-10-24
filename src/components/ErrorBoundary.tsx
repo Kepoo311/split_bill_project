@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { colors } from '../theme';
+import { AppText } from './AppText';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
   children: React.ReactNode;
@@ -29,18 +31,18 @@ export class ErrorBoundary extends React.Component<Props, State> {
     if (this.state.hasError) {
       return (
         <View style={styles.container}>
-          <Text style={styles.icon}>⚠️</Text>
-          <Text style={styles.title}>Tampilan Gagal Dimuat</Text>
-          <Text style={styles.message}>
+          <Ionicons name="warning-outline" size={34} color={colors.warning} />
+          <AppText style={styles.title}>Tampilan Gagal Dimuat</AppText>
+          <AppText style={styles.message}>
             Terjadi error tak terduga. Data riwayatmu tetap aman di penyimpanan
             lokal — coba muat ulang tampilannya.
-          </Text>
+          </AppText>
           <Pressable
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
             onPress={() => this.setState({ hasError: false })}
             accessibilityRole="button"
           >
-            <Text style={styles.buttonText}>Coba Lagi</Text>
+            <AppText style={styles.buttonText}>Coba Lagi</AppText>
           </Pressable>
         </View>
       );
@@ -62,7 +64,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: colors.text,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
     marginBottom: 8,
   },
   message: {
@@ -83,6 +85,6 @@ const styles = StyleSheet.create({
     color: colors.ink,
     fontSize: 14,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
 });

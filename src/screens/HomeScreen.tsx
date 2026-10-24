@@ -1,20 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import { View, TextInput, TouchableOpacity, FlatList, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useBillStore } from '../store/billStore';
+import { useUpdateStore } from '../store/updateStore';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BillHistory, RootStackParamList } from '../types';
 import { CyberModal } from '../components/CyberModal';
 import { UpdateBanner } from '../components/UpdateBanner';
+import { AppText } from '../components/AppText';
 import { filterHistory } from '../utils/historyFilter';
 import { colors } from '../theme';
 import { formatRupiah, formatDateShortTime } from '../utils/format';
@@ -43,29 +38,29 @@ function HistoryCardBase({ item, onPress }: HistoryCardProps) {
       activeOpacity={0.8}
       onPress={() => onPress(item)}
     >
-      <View style={styles.cardGlowLine} />
+      <View style={styles.cardAccentLine} />
       <View style={styles.historyCardTop}>
-        <Text style={styles.historyCardTitle} numberOfLines={1} ellipsizeMode="tail">
+        <AppText style={styles.historyCardTitle} numberOfLines={1} ellipsizeMode="tail">
           {item.title}
-        </Text>
+        </AppText>
         <View style={[styles.statusBadgeSmall, isAllPaid ? styles.paidBadgeSmall : styles.unpaidBadgeSmall]}>
-          <Text style={[styles.statusBadgeSmallText, isAllPaid ? styles.paidBadgeSmallText : styles.unpaidBadgeSmallText]}>
-            {isAllPaid ? '✓ LUNAS' : `${paidCount}/${totalCount} BAYAR`}
-          </Text>
+          <AppText style={[styles.statusBadgeSmallText, isAllPaid ? styles.paidBadgeSmallText : styles.unpaidBadgeSmallText]}>
+            {isAllPaid ? 'Lunas' : `${paidCount}/${totalCount} bayar`}
+          </AppText>
         </View>
       </View>
-      <Text style={styles.historyCardDate}>
+      <AppText style={styles.historyCardDate}>
         {formatDateShortTime(item.date)}
-      </Text>
+      </AppText>
       <View style={styles.historyCardFooter}>
         <View style={styles.metaBadge}>
-          <Text style={styles.metaBadgeText}>
-            {item.members.length} ORANG • {item.items.length} ITEM
-          </Text>
+          <AppText style={styles.metaBadgeText}>
+            {item.members.length} orang • {item.items.length} item
+          </AppText>
         </View>
-        <Text style={styles.historyTotal}>
+        <AppText style={styles.historyTotal}>
           {formatRupiah(item.grandTotal)}
-        </Text>
+        </AppText>
       </View>
     </TouchableOpacity>
   );
@@ -83,6 +78,12 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const searchInputRef = useRef<TextInput>(null);
   const [showSourceModal, setShowSourceModal] = useState(false);
 
+  const isChecking = useUpdateStore((s) => s.isChecking);
+  const isDownloading = useUpdateStore((s) => s.isDownloading);
+  const updateAvailable = useUpdateStore((s) => s.updateAvailable);
+  const updateDownloaded = useUpdateStore((s) => s.updateDownloaded);
+  const [justCheckedOk, setJustCheckedOk] = useState(false);
+
   useEffect(() => {
     loadHistory();
   }, [loadHistory]);
@@ -99,6 +100,26 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
     () => filterHistory(history, searchQuery, filterCategory),
     [history, searchQuery, filterCategory],
   );
+
+  // Cek manual dari ikon header: unduh lalu pasang, atau kasih tanda "sudah
+  // versi terbaru" sebentar saat tidak ada pembaruan.
+  const handleUpdatePress = useCallback(async () => {
+    const s = useUpdateStore.getState();
+    if (s.isChecking || s.isDownloading) return;
+    if (s.updateDownloaded) {
+      s.applyUpdate();
+      return;
+    }
+    const result = await s.checkAndFetch();
+    if (result === 'ready') {
+      useUpdateStore.getState().applyUpdate();
+      return;
+    }
+    if (result === 'uptodate') {
+      setJustCheckedOk(true);
+      setTimeout(() => setJustCheckedOk(false), 2000);
+    }
+  }, []);
 
   const handlePickImage = async () => {
     try {
@@ -123,28 +144,63 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
   const showScanOptions = () => setShowSourceModal(true);
 
+  const updateInProgress = isChecking || isDownloading;
+  const hasUpdate = updateAvailable || updateDownloaded;
+
+  const renderUpdateIcon = () => {
+    if (updateInProgress) {
+      return <ActivityIndicator size="small" color={colors.accent} />;
+    }
+    if (justCheckedOk) {
+      return <Ionicons name="checkmark-outline" size={20} color={colors.success} />;
+    }
+    return (
+      <Ionicons
+        name="cloud-download-outline"
+        size={20}
+        color={hasUpdate ? colors.accent : colors.textDim}
+      />
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Background Tech Elements */}
-      <View style={styles.cyberGrid} />
-
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <View>
-            <View style={styles.badgeRow}>
-              <View style={styles.statusDot} />
-              <Text style={styles.badgeText}>OFFLINE ENGINE READY</Text>
-            </View>
-            <Text style={styles.appTitle}>SPLIT<Text style={styles.accentText}>BILL</Text></Text>
-            <Text style={styles.appByline}>By KepoX</Text>
-            <Text style={styles.appSubtitle}>Neural Optical Receipt Analyzer</Text>
+          <View style={styles.headerTitles}>
+            <AppText style={styles.appTitle}>
+              Split<AppText style={styles.accentText}>Bill</AppText>
+            </AppText>
+            <AppText style={styles.appByline}>by KepoX</AppText>
+            <AppText style={styles.appSubtitle}>Bagi tagihan bareng jadi gampang</AppText>
           </View>
-          <TouchableOpacity
-            style={styles.settingsBtn}
-            onPress={() => navigation.navigate('Settings')}
-          >
-            <Text style={styles.settingsBtnText}>⚙️</Text>
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.updateBtn}
+              onPress={handleUpdatePress}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={
+                updateDownloaded
+                  ? 'Pasang pembaruan yang sudah diunduh'
+                  : hasUpdate
+                    ? 'Pembaruan tersedia, ketuk untuk mengunduh'
+                    : 'Cek pembaruan aplikasi'
+              }
+            >
+              {renderUpdateIcon()}
+              {hasUpdate && !updateInProgress && <View style={styles.updateBadgeDot} />}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.settingsBtn}
+              onPress={() => navigation.navigate('Settings')}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Buka pengaturan"
+            >
+              <Ionicons name="settings-outline" size={20} color={colors.accent} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -153,13 +209,13 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
         activeOpacity={0.85}
         onPress={showScanOptions}
       >
-        <View style={styles.scanButtonGlow} />
         <View style={styles.scanContent}>
-          <Text style={styles.scanButtonIcon}>⚡</Text>
-          <View>
-            <Text style={styles.scanButtonText}>PINDAI STRUK BARU</Text>
-            <Text style={styles.scanButtonSubtext}>Ekstraksi OCR Otomatis • Kamera / Galeri</Text>
+          <Ionicons name="scan-outline" size={26} color={colors.accent} />
+          <View style={styles.scanTexts}>
+            <AppText style={styles.scanButtonText}>Pindai Struk Baru</AppText>
+            <AppText style={styles.scanButtonSubtext}>Kamera, galeri, atau isi manual</AppText>
           </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
         </View>
       </TouchableOpacity>
 
@@ -173,8 +229,11 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
           accessibilityRole="button"
           accessibilityLabel="Buka grup patungan"
         >
-          <Text style={styles.groupsButtonText}>👥 GRUP PATUNGAN</Text>
-          <Text style={styles.groupsButtonSubtext}>Saldo berjalan kosan / tim — multi struk</Text>
+          <View style={styles.groupsButtonTop}>
+            <Ionicons name="people-outline" size={18} color={colors.accent} />
+            <AppText style={styles.groupsButtonText}>Grup Patungan</AppText>
+          </View>
+          <AppText style={styles.groupsButtonSubtext}>Saldo berjalan • multi struk</AppText>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.statsButton}
@@ -183,22 +242,22 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
           accessibilityRole="button"
           accessibilityLabel="Buka statistik pengeluaran"
         >
-          <Text style={styles.statsIcon}>📊</Text>
-          <Text style={styles.statsLabel}>STATISTIK</Text>
+          <Ionicons name="bar-chart-outline" size={20} color={colors.textMuted} />
+          <AppText style={styles.statsLabel}>Statistik</AppText>
         </TouchableOpacity>
       </View>
 
       <View style={styles.historySection}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.historyTitle}>RIWAYAT TRANSAKSI</Text>
+          <AppText style={styles.historyTitle}>Riwayat Transaksi</AppText>
           <View style={styles.countBadge}>
-            <Text style={styles.countBadgeText}>{filteredHistory.length}</Text>
+            <AppText style={styles.countBadgeText}>{filteredHistory.length}</AppText>
           </View>
         </View>
 
         {/* Pencarian: judul, nama item, atau nama anggota */}
         <View style={styles.searchRow}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Ionicons name="search" size={16} color={colors.textDim} />
           <TextInput
             ref={searchInputRef}
             style={styles.searchInput}
@@ -220,7 +279,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
               accessibilityRole="button"
               accessibilityLabel="Hapus pencarian"
             >
-              <Text style={styles.searchClearText}>✕</Text>
+              <Ionicons name="close" size={14} color={colors.textDim} />
             </TouchableOpacity>
           )}
         </View>
@@ -239,10 +298,13 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 key={cat}
                 style={[styles.categoryChip, isActive && styles.categoryChipActive]}
                 onPress={() => setFilterCategory(cat)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isActive }}
+                accessibilityLabel={`Filter kategori ${cat}`}
               >
-                <Text style={[styles.categoryChipText, isActive && styles.categoryChipTextActive]}>
+                <AppText style={[styles.categoryChipText, isActive && styles.categoryChipTextActive]}>
                   {cat}
-                </Text>
+                </AppText>
               </TouchableOpacity>
             );
           })}
@@ -251,16 +313,16 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
         {filteredHistory.length === 0 ? (
           <View style={styles.emptyContainer}>
             <View style={styles.emptyIconCircle}>
-              <Text style={styles.emptyIcon}>◈</Text>
+              <Ionicons name="receipt-outline" size={26} color={colors.accent} />
             </View>
-            <Text style={styles.emptyText}>TIDAK ADA DATA</Text>
-            <Text style={styles.emptySubtext}>
+            <AppText style={styles.emptyText}>Belum ada transaksi</AppText>
+            <AppText style={styles.emptySubtext}>
               {filterCategory === 'Semua'
                 ? searchQuery
                   ? `Tidak ada hasil untuk "${searchQuery.trim()}".`
                   : 'Struk yang diproses akan tersimpan aman di penyimpanan lokal perangkat.'
                 : `Belum ada transaksi dengan kategori "${filterCategory}".`}
-            </Text>
+            </AppText>
           </View>
         ) : (
           <FlatList
@@ -275,14 +337,14 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
         )}
       </View>
 
-      {/* CyberModal Pilihan Scan Struk */}
+      {/* Modal Pilihan Input Struk */}
       <CyberModal
         visible={showSourceModal}
-        title="PINDAI STRUK"
-        message="Pilih metode input visual struk transaksi:"
+        title="Pindai Struk"
+        message="Mau input struk lewat mana?"
         buttons={[
           {
-            text: '📷 Kamera Scanner HUD',
+            text: 'Kamera',
             style: 'default',
             onPress: () => {
               setShowSourceModal(false);
@@ -290,7 +352,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
             },
           },
           {
-            text: '🖼️ Buka Galeri',
+            text: 'Buka Galeri',
             style: 'default',
             onPress: () => {
               setShowSourceModal(false);
@@ -298,7 +360,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
             },
           },
           {
-            text: '✏️ Isi Manual (tanpa struk)',
+            text: 'Isi Manual (tanpa struk)',
             style: 'default',
             onPress: () => {
               setShowSourceModal(false);
@@ -322,172 +384,149 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg,
   },
-  quickActionsRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
-  groupsButton: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.accentBorder,
-    backgroundColor: colors.accentSoft,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    minHeight: 64,
-    justifyContent: 'center',
-  },
-  groupsButtonText: { color: colors.accent, fontSize: 13, fontWeight: '800', letterSpacing: 0.8 },
-  groupsButtonSubtext: { color: colors.textDim, fontSize: 10, marginTop: 2 },
-  statsButton: {
-    width: 84,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 64,
-  },
-  statsIcon: { fontSize: 20 },
-  statsLabel: { color: colors.textMuted, fontSize: 9, fontWeight: '800', letterSpacing: 0.8, marginTop: 4 },
-  cyberGrid: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 180,
-    backgroundColor: 'rgba(212, 160, 23, 0.03)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(212, 160, 23, 0.1)',
-  },
   header: {
     paddingHorizontal: 20,
     paddingTop: 18,
-    paddingBottom: 16,
+    paddingBottom: 14,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
-  settingsBtn: {
-    padding: 6,
-    backgroundColor: colors.accentSoft,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.accentBorder,
+  headerTitles: {
+    flex: 1,
+    marginRight: 12,
   },
-  settingsBtnText: {
-    fontSize: 18,
-  },
-  badgeRow: {
+  headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    gap: 8,
   },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  updateBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  updateBadgeDot: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: colors.accent,
-    marginRight: 6,
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 6,
-    elevation: 3,
+    borderWidth: 1.5,
+    borderColor: colors.bg,
   },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.accent,
-    letterSpacing: 1.5,
+  settingsBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: colors.accentSoft,
+    borderWidth: 1,
+    borderColor: colors.accentBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   appTitle: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: 2,
+    fontSize: 30,
+    fontWeight: '700',
+    color: colors.text,
+    letterSpacing: 0.3,
   },
   accentText: {
     color: colors.accent,
   },
   appByline: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.accent,
-    letterSpacing: 1,
+    letterSpacing: 0.3,
     marginTop: 2,
   },
   appSubtitle: {
     fontSize: 12,
     color: colors.textDim,
     marginTop: 4,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   scanButton: {
     marginHorizontal: 20,
-    marginTop: 10,
-    marginBottom: 24,
-    borderRadius: 16,
-    backgroundColor: '#16213A',
-    borderWidth: 1.5,
-    borderColor: colors.accent,
-    padding: 20,
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 8,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  scanButtonGlow: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 2,
-    backgroundColor: colors.accent,
+    marginTop: 6,
+    marginBottom: 20,
+    borderRadius: 14,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.accentBorder,
+    padding: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 3,
   },
   scanContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  scanButtonIcon: {
-    fontSize: 30,
-    marginRight: 16,
-    color: colors.accent,
+  scanTexts: {
+    flex: 1,
+    marginLeft: 14,
+    marginRight: 10,
   },
   scanButtonText: {
     fontSize: 16,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: 1.2,
+    fontWeight: '600',
+    color: colors.text,
+    letterSpacing: 0.2,
   },
   scanButtonSubtext: {
-    fontSize: 11,
+    fontSize: 11.5,
     color: colors.textFaint,
-    marginTop: 4,
+    marginTop: 3,
   },
-  searchRow: {
+  quickActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 16,
+    paddingHorizontal: 20,
+    alignItems: 'stretch',
+  },
+  groupsButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.accentBorder,
+    backgroundColor: colors.accentSoft,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    minHeight: 68,
+    justifyContent: 'center',
+  },
+  groupsButtonTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    gap: 6,
+  },
+  groupsButtonText: { color: colors.accent, fontSize: 13.5, fontWeight: '600', letterSpacing: 0.2 },
+  groupsButtonSubtext: { color: colors.textDim, fontSize: 10.5, marginTop: 3 },
+  statsButton: {
+    width: 104,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    height: 44,
-    marginBottom: 10,
-  },
-  searchIcon: { fontSize: 13, marginRight: 8 },
-  searchInput: { flex: 1, fontSize: 13, color: colors.text, padding: 0 },
-  searchClear: {
-    padding: 6,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.surface,
     borderRadius: 12,
-    marginLeft: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
   },
-  searchClearText: { color: colors.textDim, fontSize: 12, fontWeight: '800' },
+  statsLabel: { color: colors.textMuted, fontSize: 11.5, fontWeight: '600', letterSpacing: 0.2, marginTop: 5 },
   historySection: {
     flex: 1,
     paddingHorizontal: 20,
@@ -496,13 +535,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   historyTitle: {
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.textFaint,
-    letterSpacing: 1.5,
+    letterSpacing: 0.4,
   },
   countBadge: {
     backgroundColor: colors.border,
@@ -514,42 +553,65 @@ const styles = StyleSheet.create({
   },
   countBadgeText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textSubtle,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
-  categoryScrollContainer: {
-      flexGrow: 0,
-      maxHeight: 44,
-      marginBottom: 12,
-    },
-    categoryScroll: {
-      paddingBottom: 12,
-      gap: 8,
-    },
-  categoryChip: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    marginRight: 8,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 46,
+    marginBottom: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.text,
+    padding: 0,
+    marginLeft: 8,
+    fontFamily: 'IBMPlexSans_400Regular',
+  },
+  searchClear: {
+    padding: 6,
+    backgroundColor: colors.bg,
+    borderRadius: 12,
+    marginLeft: 6,
+  },
+  categoryScrollContainer: {
+    flexGrow: 0,
+    marginBottom: 14,
+  },
+  categoryScroll: {
+    gap: 10,
+    paddingRight: 4,
+  },
+  categoryChip: {
+    paddingVertical: 9,
+    paddingHorizontal: 15,
+    backgroundColor: colors.surface,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   categoryChipActive: {
     backgroundColor: colors.accentSoft,
     borderColor: colors.accent,
   },
   categoryChipText: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 12.5,
+    fontWeight: '500',
     color: colors.textSubtle,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   categoryChipTextActive: {
-      color: colors.accent,
-    },
-    listContent: {
+    color: colors.accent,
+  },
+  listContent: {
     paddingBottom: 24,
   },
   historyCard: {
@@ -562,7 +624,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
   },
-  cardGlowLine: {
+  cardAccentLine: {
     position: 'absolute',
     left: 0,
     top: 0,
@@ -577,9 +639,9 @@ const styles = StyleSheet.create({
   },
   historyCardTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
     flex: 1,
     marginRight: 8,
   },
@@ -590,15 +652,9 @@ const styles = StyleSheet.create({
   },
   paidBadgeSmall: { backgroundColor: colors.successSoft, borderWidth: 1, borderColor: colors.success },
   unpaidBadgeSmall: { backgroundColor: colors.warningSoft, borderWidth: 1, borderColor: colors.warning },
-  statusBadgeSmallText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
+  statusBadgeSmallText: { fontSize: 10, fontWeight: '600', letterSpacing: 0.2 },
   paidBadgeSmallText: { color: colors.success },
   unpaidBadgeSmallText: { color: colors.warning },
-  deleteText: {
-    color: colors.danger,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
   historyCardDate: {
     fontSize: 11,
     color: colors.textDim,
@@ -611,7 +667,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#2A3A55',
+    borderTopColor: colors.border,
   },
   metaBadge: {
     backgroundColor: 'rgba(255, 255, 255, 0.04)',
@@ -621,15 +677,15 @@ const styles = StyleSheet.create({
   },
   metaBadgeText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     color: colors.textFaint,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   historyTotal: {
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.accent,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -640,26 +696,22 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
-  emptyIcon: {
-    fontSize: 24,
-    color: colors.accent,
-  },
   emptyText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textFaint,
-    letterSpacing: 1,
+    letterSpacing: 0.3,
   },
   emptySubtext: {
     fontSize: 12,
-    color: '#8FA0BC',
+    color: colors.textSubtle,
     textAlign: 'center',
     marginTop: 6,
     lineHeight: 18,

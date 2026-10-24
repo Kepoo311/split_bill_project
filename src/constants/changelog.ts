@@ -1,5 +1,15 @@
 export const CHANGELOG = [
   {
+    version: '1.2.0',
+    date: '2026-10-24',
+    items: [
+      'Tampilan baru yang lebih profesional: font IBM Plex Sans, ikon vektor menggantikan emoji, dan bahasa UI yang lebih tenang',
+      'Ikon pembaruan di Beranda (di samping Pengaturan): titik emas menyala saat ada versi baru — ketuk untuk cek/pasang manual',
+      'Cek pembaruan lebih sering: otomatis setiap app kembali dibuka dan tiap 15 menit saat aktif — bukan hanya saat app di-restart',
+      'Tata letak lebih rapi: tombol Grup/Statistik sejajar sama tinggi, chip filter kategori lebih lega dan nyaman ditekan',
+    ],
+  },
+  {
     version: '1.1.1',
     date: '2026-10-24',
     items: [
@@ -14,7 +24,7 @@ export const CHANGELOG = [
       'Statistik interaktif: filter Hari Ini / 7 Hari / Bulan Ini, chart bisa di-tap untuk melihat rincian tagihan per periode',
       'Bagikan tagihan sebagai GAMBAR — kartu ringkasan bergaya rapi, siap dikirim ke grup WA',
       'Kunci biometrik: proteksi sidik jari/wajah/PIN saat membuka aplikasi (Pengaturan › Keamanan)',
-      'Pembaruan runtime: update OTA kini berbasis fingerprint — lebih tahan lama antar versi',
+      'Pembaruan runtime: update OTA kini terikat versi aplikasi — jelas kapan perlu install APK baru',
     ],
   },
   {
@@ -24,7 +34,7 @@ export const CHANGELOG = [
       'Kartu "CARA BERESIN TAGIHAN" di grup: daftar transfer minimum — mis. "Saya bayar Rp 20.000 ke Ripa" — terhitung otomatis biar semua impas',
       'Teks saldo anggota kini eksplisit: "Bayar Rp X ke Y" / "Menerima Rp X dari ..." — bukan lagi angka +/- polos',
       'Status lunas kini hanya untuk anggota yang berutang; yang menalangi tidak punya opsi lunas',
-      'Tombol "Tagih 📨" per transfer: kirim pesan tagihan siap-jadi ke WhatsApp',
+      'Tombol "Tagih" per transfer: kirim pesan tagihan siap-jadi ke WhatsApp',
     ],
   },
   {

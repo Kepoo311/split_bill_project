@@ -1,18 +1,13 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-} from 'react-native';
+import { View, TextInput, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BillItem, RootStackParamList } from '../types';
 import { TopBar } from '../components/TopBar';
 import { generateId } from '../utils/ids';
 import { colors } from '../theme';
+import { AppText } from '../components/AppText';
+import { Ionicons } from '@expo/vector-icons';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ManualBill'>;
 
@@ -33,7 +28,7 @@ function ManualRowBase({ item, onUpdate, onDelete }: ManualRowProps) {
         placeholderTextColor={colors.textDim}
       />
       <View style={styles.priceWrap}>
-        <Text style={styles.currency}>Rp</Text>
+        <AppText style={styles.currency}>Rp</AppText>
         <TextInput
           style={styles.priceInput}
           value={item.harga > 0 ? String(item.harga) : ''}
@@ -50,7 +45,7 @@ function ManualRowBase({ item, onUpdate, onDelete }: ManualRowProps) {
         accessibilityRole="button"
         accessibilityLabel={`Hapus ${item.nama_item || 'item'}`}
       >
-        <Text style={styles.deleteText}>✕</Text>
+        <Ionicons name="close" size={14} color={colors.danger} />
       </TouchableOpacity>
     </View>
   );
@@ -97,14 +92,14 @@ export const ManualBillScreen: React.FC<Props> = ({ navigation }) => {
         backLabel="← Batal"
         right={
           <TouchableOpacity onPress={handleAdd} style={styles.addBtn} hitSlop={6} accessibilityRole="button" accessibilityLabel="Tambah baris item">
-            <Text style={styles.addBtnText}>+ Item</Text>
+            <AppText style={styles.addBtnText}>+ Item</AppText>
           </TouchableOpacity>
         }
       />
 
-      <Text style={styles.hint}>
+      <AppText style={styles.hint}>
         Buat tagihan tanpa struk — isi nama item dan harganya, lalu lanjut bagi ke anggota.
-      </Text>
+      </AppText>
 
       <FlatList
         data={items}
@@ -117,9 +112,9 @@ export const ManualBillScreen: React.FC<Props> = ({ navigation }) => {
       />
 
       <View style={styles.footer}>
-        <Text style={styles.footerMeta}>
+        <AppText style={styles.footerMeta}>
           {validItems.length} item siap dibagikan
-        </Text>
+        </AppText>
         <TouchableOpacity
           style={[styles.proceedBtn, validItems.length === 0 && styles.proceedDisabled]}
           onPress={handleProceed}
@@ -127,7 +122,7 @@ export const ManualBillScreen: React.FC<Props> = ({ navigation }) => {
           accessibilityRole="button"
           accessibilityLabel="Lanjut ke bagi tagihan"
         >
-          <Text style={styles.proceedText}>Lanjut ke Bagi Tagihan →</Text>
+          <AppText style={styles.proceedText}>Lanjut ke Bagi Tagihan →</AppText>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -156,10 +151,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     minHeight: 60,
   },
-  nameInput: { flex: 1, fontSize: 14, color: colors.text, fontWeight: '500', padding: 4 },
+  nameInput: {
+    fontFamily: 'IBMPlexSans_400Regular', flex: 1, fontSize: 14, color: colors.text, fontWeight: '500', padding: 4 },
   priceWrap: { flexDirection: 'row', alignItems: 'center', marginLeft: 8 },
   currency: { fontSize: 12, color: colors.textDim, marginRight: 4, fontWeight: '600' },
   priceInput: {
+    fontFamily: 'IBMPlexSans_700Bold',
     fontSize: 14,
     fontWeight: '700',
     color: colors.accent,
@@ -199,5 +196,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   proceedDisabled: { backgroundColor: colors.line },
-  proceedText: { color: colors.ink, fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
+  proceedText: { color: colors.ink, fontSize: 15, fontWeight: '800', letterSpacing: 0.2 },
 });

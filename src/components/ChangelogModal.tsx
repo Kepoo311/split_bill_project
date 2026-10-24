@@ -1,14 +1,8 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Modal,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { View, Modal, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { ChangelogEntry } from '../constants/changelog';
 import { colors } from '../theme';
+import { AppText } from './AppText';
 
 interface ChangelogModalProps {
   visible: boolean;
@@ -28,19 +22,19 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({
       <TouchableOpacity style={styles.backdrop} onPress={onClose} />
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Apa yang Baru?</Text>
-          <Text style={styles.version}>v{entry.version} · {entry.date}</Text>
+          <AppText style={styles.title}>Apa yang Baru?</AppText>
+          <AppText style={styles.version}>v{entry.version} · {entry.date}</AppText>
         </View>
         <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
           {entry.items.map((item, i) => (
             <View key={i} style={styles.itemRow}>
-              <Text style={styles.bullet}>•</Text>
-              <Text style={styles.itemText}>{item}</Text>
+              <AppText style={styles.bullet}>•</AppText>
+              <AppText style={styles.itemText}>{item}</AppText>
             </View>
           ))}
         </ScrollView>
         <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-          <Text style={styles.closeBtnText}>Tutup</Text>
+          <AppText style={styles.closeBtnText}>Tutup</AppText>
         </TouchableOpacity>
       </View>
     </Modal>

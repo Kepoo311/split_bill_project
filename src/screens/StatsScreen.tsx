@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, Pressable, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Pressable, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
@@ -14,6 +14,7 @@ import {
 } from '../utils/stats';
 import { formatRupiah, formatDateShortTime } from '../utils/format';
 import { colors } from '../theme';
+import { AppText } from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Stats'>;
 type RangeFilter = 'today' | 'week' | 'month';
@@ -103,10 +104,10 @@ export const StatsScreen: React.FC<Props> = ({ navigation }) => {
           ]}
         />
       </View>
-      <Text style={[styles.barLabel, activeKey === key && styles.barLabelActive, isToday && styles.barLabelToday]}>
+      <AppText style={[styles.barLabel, activeKey === key && styles.barLabelActive, isToday && styles.barLabelToday]}>
         {label}
         {isToday ? '•' : ''}
-      </Text>
+      </AppText>
     </Pressable>
   );
 
@@ -126,30 +127,30 @@ export const StatsScreen: React.FC<Props> = ({ navigation }) => {
               accessibilityRole="button"
               accessibilityLabel={`Filter ${option.label}`}
             >
-              <Text style={[styles.chipText, filter === option.id && styles.chipTextActive]}>
+              <AppText style={[styles.chipText, filter === option.id && styles.chipTextActive]}>
                 {option.label}
-              </Text>
+              </AppText>
             </Pressable>
           ))}
         </View>
 
         <View style={styles.summaryCard}>
-          <Text style={styles.kpiLabel}>
+          <AppText style={styles.kpiLabel}>
             {filter === 'today' ? 'HARI INI' : filter === 'week' ? '7 HARI TERAKHIR' : 'BULAN INI'}
-          </Text>
-          <Text style={styles.kpiValue}>{formatRupiah(range.total)}</Text>
-          <Text style={styles.kpiMeta}>{range.count} tagihan</Text>
+          </AppText>
+          <AppText style={styles.kpiValue}>{formatRupiah(range.total)}</AppText>
+          <AppText style={styles.kpiMeta}>{range.count} tagihan</AppText>
           {filter === 'month' && stats.lastMonth > 0 && (
-            <Text style={[styles.kpiDelta, trendDelta > 0 ? styles.deltaUp : styles.deltaDown]}>
+            <AppText style={[styles.kpiDelta, trendDelta > 0 ? styles.deltaUp : styles.deltaDown]}>
               {trendDelta > 0 ? '▲' : '▼'} {formatRupiah(Math.abs(trendDelta))} vs bulan lalu
-            </Text>
+            </AppText>
           )}
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>
+          <AppText style={styles.cardTitle}>
             {showDailyChart ? '7 HARI TERAKHIR — TAP BAR UNTUK DETAIL' : 'TREN 6 BULAN — TAP BAR UNTUK DETAIL'}
-          </Text>
+          </AppText>
           <View style={styles.chart}>
             {showDailyChart
               ? dayBuckets.map((day) =>
@@ -162,13 +163,13 @@ export const StatsScreen: React.FC<Props> = ({ navigation }) => {
 
           {(selectedDay || selectedMonth) && (
             <View style={styles.detailCard}>
-              <Text style={styles.detailTitle}>
+              <AppText style={styles.detailTitle}>
                 {selectedDay
                   ? `${formatDayLabel(selectedDay.date)} — ${formatRupiah(selectedDay.total)}`
                   : `${selectedMonth!.label} ${selectedMonth!.key.split('-')[0]} — ${formatRupiah(selectedMonth!.total)}`}
-              </Text>
+              </AppText>
               {selectedBills.length === 0 ? (
-                <Text style={styles.detailEmpty}>Tidak ada tagihan di periode ini</Text>
+                <AppText style={styles.detailEmpty}>Tidak ada tagihan di periode ini</AppText>
               ) : (
                 selectedBills.slice(0, 5).map((bill) => (
                   <TouchableOpacity
@@ -179,47 +180,47 @@ export const StatsScreen: React.FC<Props> = ({ navigation }) => {
                     accessibilityLabel={`Buka ${bill.title}`}
                   >
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.detailBillTitle} numberOfLines={1}>
+                      <AppText style={styles.detailBillTitle} numberOfLines={1}>
                         {bill.title}
-                      </Text>
-                      <Text style={styles.detailBillMeta}>
+                      </AppText>
+                      <AppText style={styles.detailBillMeta}>
                         {selectedMonth ? formatDateShortTime(bill.date) : formatRupiah(bill.grandTotal)}
-                      </Text>
+                      </AppText>
                     </View>
                     {selectedDay && (
-                      <Text style={styles.detailBillAmount}>{formatRupiah(bill.grandTotal)}</Text>
+                      <AppText style={styles.detailBillAmount}>{formatRupiah(bill.grandTotal)}</AppText>
                     )}
                   </TouchableOpacity>
                 ))
               )}
               {selectedBills.length > 5 && (
-                <Text style={styles.detailMore}>+{selectedBills.length - 5} tagihan lainnya</Text>
+                <AppText style={styles.detailMore}>+{selectedBills.length - 5} tagihan lainnya</AppText>
               )}
             </View>
           )}
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>KATEGORI</Text>
+          <AppText style={styles.cardTitle}>Kategori</AppText>
           {stats.byCategory.length === 0 ? (
-            <Text style={styles.emptyText}>Belum ada data — scan struk pertamamu dulu!</Text>
+            <AppText style={styles.emptyText}>Belum ada data — scan struk pertamamu dulu!</AppText>
           ) : (
             stats.byCategory.map((category) => (
               <View key={category.category} style={styles.categoryRow}>
-                <Text style={styles.categoryName}>{category.category}</Text>
-                <Text style={styles.categoryMeta}>{category.count} tagihan</Text>
-                <Text style={styles.categoryTotal}>{formatRupiah(category.total)}</Text>
+                <AppText style={styles.categoryName}>{category.category}</AppText>
+                <AppText style={styles.categoryMeta}>{category.count} tagihan</AppText>
+                <AppText style={styles.categoryTotal}>{formatRupiah(category.total)}</AppText>
               </View>
             ))
           )}
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>TOTAL SEJAK AWAL</Text>
-          <Text style={styles.allTimeValue}>{formatRupiah(stats.allTime)}</Text>
-          <Text style={styles.kpiMeta}>
+          <AppText style={styles.cardTitle}>Total Sejak Awal</AppText>
+          <AppText style={styles.allTimeValue}>{formatRupiah(stats.allTime)}</AppText>
+          <AppText style={styles.kpiMeta}>
             {stats.billCount} tagihan • rata-rata {formatRupiah(stats.avgPerBill)}
-          </Text>
+          </AppText>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -252,7 +253,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 14,
   },
-  kpiLabel: { fontSize: 10, color: colors.textDim, fontWeight: '700', letterSpacing: 1.2 },
+  kpiLabel: { fontSize: 10, color: colors.textDim, fontWeight: '700', letterSpacing: 0.3 },
   kpiValue: { fontSize: 24, fontWeight: '900', color: colors.accent, marginTop: 6 },
   kpiMeta: { fontSize: 11, color: colors.textDim, marginTop: 4 },
   kpiDelta: { fontSize: 11, fontWeight: '700', marginTop: 4 },
@@ -266,7 +267,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 14,
   },
-  cardTitle: { fontSize: 10, fontWeight: '800', color: colors.accent, letterSpacing: 1, marginBottom: 14 },
+  cardTitle: { fontSize: 10, fontWeight: '800', color: colors.accent, letterSpacing: 0.3, marginBottom: 14 },
   chart: { flexDirection: 'row', alignItems: 'flex-end', minHeight: 110 },
   barCol: { flex: 1, alignItems: 'center' },
   barTrack: { height: 84, width: 16, borderRadius: 8, backgroundColor: colors.bg, overflow: 'hidden', justifyContent: 'flex-end' },

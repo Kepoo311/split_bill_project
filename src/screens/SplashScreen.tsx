@@ -1,18 +1,12 @@
 import React, { useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Animated,
-  Easing,
-  StatusBar,
-} from 'react-native';
+import { View, StyleSheet, Animated, Easing, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { Image } from 'expo-image';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { colors } from '../theme';
+import { AppText } from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
@@ -93,10 +87,10 @@ export const SplashScreen: React.FC<Props> = ({ navigation }) => {
       </Animated.View>
 
       <Animated.View style={[styles.textContainer, textStyle]}>
-        <Text style={styles.appName}>SPLIT BILL</Text>
-        <Text style={styles.tagline}>Smart Bill Splitter</Text>
+        <AppText style={styles.appName}>SPLIT BILL</AppText>
+        <AppText style={styles.tagline}>Smart Bill Splitter</AppText>
         <View style={styles.divider} />
-        <Text style={styles.developer}>By KepoX</Text>
+        <AppText style={styles.developer}>By KepoX</AppText>
       </Animated.View>
 
       <View style={styles.loadingContainer}>
@@ -110,7 +104,7 @@ export const SplashScreen: React.FC<Props> = ({ navigation }) => {
             ]}
           />
         </View>
-        <Text style={styles.loadingText}>Memuat...</Text>
+        <AppText style={styles.loadingText}>Memuat...</AppText>
       </View>
     </SafeAreaView>
   );
@@ -167,7 +161,7 @@ const styles = StyleSheet.create({
     fontSize: 36,
     fontWeight: '800',
     color: '#FFFFFF',
-    letterSpacing: 4,
+    letterSpacing: 0.4,
     textShadowColor: 'rgba(212, 160, 23, 0.45)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
@@ -176,7 +170,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '400',
     color: colors.accent,
-    letterSpacing: 3,
+    letterSpacing: 0.4,
     marginTop: 4,
     textTransform: 'uppercase',
   },
@@ -196,7 +190,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#94A3B8',
-    letterSpacing: 1.5,
+    letterSpacing: 0.4,
   },
   loadingContainer: {
     zIndex: 1,
@@ -221,7 +215,7 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 11,
     color: '#8FA0BC',
-    letterSpacing: 1,
+    letterSpacing: 0.3,
     textTransform: 'uppercase',
   },
 });

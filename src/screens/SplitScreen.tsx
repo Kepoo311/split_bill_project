@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BillItem, Member, RootStackParamList } from '../types';
 import { calculateSplit } from '../utils/calculateSplit';
@@ -15,6 +8,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCyberAlert } from '../hooks/useCyberAlert';
 import { colors } from '../theme';
 import { formatRupiah } from '../utils/format';
+import { AppText } from '../components/AppText';
+import { Ionicons } from '@expo/vector-icons';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Split'>;
 
@@ -143,16 +138,16 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Kembali</Text>
+          <AppText style={styles.backButtonText}>← Kembali</AppText>
         </TouchableOpacity>
-        <Text style={styles.screenTitle}>Bagi & Tugaskan</Text>
+        <AppText style={styles.screenTitle}>Bagi & Tugaskan</AppText>
         <View style={{ width: 60 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Tambah Anggota */}
         <View style={styles.card}>
-          <Text style={styles.sectionHeader}>Daftar Teman Patungan</Text>
+          <AppText style={styles.sectionHeader}>Daftar Teman Patungan</AppText>
           <View style={styles.row}>
             <TextInput
               style={[styles.input, { flex: 1 }]}
@@ -162,17 +157,17 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
               onChangeText={setNewMemberName}
             />
             <TouchableOpacity style={styles.buttonAdd} onPress={addMember}>
-              <Text style={styles.buttonAddText}>Tambah</Text>
+              <AppText style={styles.buttonAddText}>Tambah</AppText>
             </TouchableOpacity>
           </View>
 
           <View style={styles.chipWrapper}>
             {members.map((m) => (
               <View key={m.id} style={styles.chipMember}>
-                <Text style={styles.chipMemberText}>{m.name}</Text>
+                <AppText style={styles.chipMemberText}>{m.name}</AppText>
                 {members.length > 1 && (
                   <TouchableOpacity onPress={() => removeMember(m.id)}>
-                    <Text style={styles.chipRemove}>✕</Text>
+                    <Ionicons name="close" size={13} color={colors.danger} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -181,8 +176,8 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
 
         {/* Daftar Item */}
-        <Text style={styles.sectionHeaderTitle}>Tugaskan Menu ke Orang</Text>
-        <Text style={styles.sectionSubhint}>Jika dipilih 2+ orang, harga otomatis dibagi rata.</Text>
+        <AppText style={styles.sectionHeaderTitle}>Tugaskan Menu ke Orang</AppText>
+        <AppText style={styles.sectionSubhint}>Jika dipilih 2+ orang, harga otomatis dibagi rata.</AppText>
 
         {items.map((item) => {
           const shareCount = item.assignedTo?.length || 0;
@@ -192,16 +187,16 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
             <View key={item.id} style={styles.itemCard}>
               <View style={styles.rowBetween}>
                 <View style={{ flex: 1, marginRight: 8 }}>
-                  <Text style={styles.itemName}>{item.nama_item}</Text>
+                  <AppText style={styles.itemName}>{item.nama_item}</AppText>
                   {shareCount > 1 && (
-                    <Text style={styles.splitIndicator}>
+                    <AppText style={styles.splitIndicator}>
                       Dibagi {shareCount} orang: @{formatRupiah(sharePrice)}
-                    </Text>
+                    </AppText>
                   )}
                 </View>
-                <Text style={styles.itemPrice}>
+                <AppText style={styles.itemPrice}>
                   {formatRupiah(item.harga)}
-                </Text>
+                </AppText>
               </View>
 
               <View style={styles.chipWrapper}>
@@ -213,7 +208,7 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
                       onPress={() => toggleAssign(item.id, m.id)}
                       style={[styles.chipSelectable, isSelected && styles.chipActive]}
                     >
-                      <Text
+                      <AppText
                         style={[
                           styles.chipTextSelectable,
                           isSelected && styles.chipTextActive,
@@ -221,7 +216,7 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
                       >
                         {isSelected ? '✓ ' : '+ '}
                         {m.name}
-                      </Text>
+                      </AppText>
                     </TouchableOpacity>
                   );
                 })}
@@ -232,31 +227,31 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
 
         {/* Pajak dan Service Charge */}
         <View style={styles.card}>
-          <Text style={styles.sectionHeader}>Biaya Tambahan</Text>
+          <AppText style={styles.sectionHeader}>Biaya Tambahan</AppText>
           <View style={styles.rowBetween}>
             <View>
-              <Text style={styles.labelTitle}>Pajak (Tax / PB1 / PPN)</Text>
+              <AppText style={styles.labelTitle}>Pajak (Tax / PB1 / PPN)</AppText>
               <View style={styles.taxModeToggle}>
                 <TouchableOpacity
                   style={[styles.taxModeBtn, taxMode === 'nominal' && styles.taxModeBtnActive]}
                   onPress={() => setTaxMode('nominal')}
                 >
-                  <Text style={[styles.taxModeBtnText, taxMode === 'nominal' && styles.taxModeBtnTextActive]}>
+                  <AppText style={[styles.taxModeBtnText, taxMode === 'nominal' && styles.taxModeBtnTextActive]}>
                     Rp (Nominal)
-                  </Text>
+                  </AppText>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.taxModeBtn, taxMode === 'percent' && styles.taxModeBtnActive]}
                   onPress={() => setTaxMode('percent')}
                 >
-                  <Text style={[styles.taxModeBtnText, taxMode === 'percent' && styles.taxModeBtnTextActive]}>
+                  <AppText style={[styles.taxModeBtnText, taxMode === 'percent' && styles.taxModeBtnTextActive]}>
                     % (Persen)
-                  </Text>
+                  </AppText>
                 </TouchableOpacity>
               </View>
             </View>
             <View style={styles.percentInputWrap}>
-              {taxMode === 'nominal' && <Text style={styles.inputUnit}>Rp</Text>}
+              {taxMode === 'nominal' && <AppText style={styles.inputUnit}>Rp</AppText>}
               <TextInput
                 style={styles.numericInput}
                 keyboardType="numeric"
@@ -265,17 +260,17 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
                 placeholder="0"
                 placeholderTextColor="#6B7280"
               />
-              {taxMode === 'percent' && <Text style={styles.inputUnit}>%</Text>}
+              {taxMode === 'percent' && <AppText style={styles.inputUnit}>%</AppText>}
             </View>
           </View>
 
           <View style={[styles.rowBetween, { marginTop: 14 }]}>
             <View>
-              <Text style={styles.labelTitle}>Biaya Layanan (Service)</Text>
-              <Text style={styles.labelSub}>Nominal flat</Text>
+              <AppText style={styles.labelTitle}>Biaya Layanan (Service)</AppText>
+              <AppText style={styles.labelSub}>Nominal flat</AppText>
             </View>
             <View style={styles.percentInputWrap}>
-              <Text style={styles.inputUnit}>Rp</Text>
+              <AppText style={styles.inputUnit}>Rp</AppText>
               <TextInput
                 style={styles.numericInput}
                 keyboardType="numeric"
@@ -289,11 +284,11 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
 
           <View style={[styles.rowBetween, { marginTop: 14 }]}>
             <View>
-              <Text style={styles.labelTitle}>Diskon / Promo / Voucher</Text>
-              <Text style={styles.labelSub}>Potongan flat</Text>
+              <AppText style={styles.labelTitle}>Diskon / Promo / Voucher</AppText>
+              <AppText style={styles.labelSub}>Potongan flat</AppText>
             </View>
             <View style={styles.percentInputWrap}>
-              <Text style={styles.inputUnit}>Rp</Text>
+              <AppText style={styles.inputUnit}>Rp</AppText>
               <TextInput
                 style={styles.numericInput}
                 keyboardType="numeric"
@@ -307,7 +302,7 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
 
         <TouchableOpacity style={styles.buttonPrimary} onPress={handleProceed}>
-          <Text style={styles.buttonPrimaryText}>Lihat Hasil Ringkasan →</Text>
+          <AppText style={styles.buttonPrimaryText}>Lihat Hasil Ringkasan →</AppText>
         </TouchableOpacity>
       </ScrollView>
       {cyberAlertModal}
@@ -328,8 +323,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   backButton: { padding: 4 },
-  backButtonText: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 0.5 },
-  screenTitle: { fontSize: 16, fontWeight: '800', color: colors.text, letterSpacing: 1 },
+  backButtonText: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 0.2 },
+  screenTitle: { fontSize: 16, fontWeight: '800', color: colors.text, letterSpacing: 0.3 },
   scroll: { padding: 16 },
   card: { 
     backgroundColor: colors.surface, 
@@ -339,12 +334,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  sectionHeader: { fontSize: 14, fontWeight: '800', color: colors.accent, marginBottom: 12, letterSpacing: 0.5 },
-  sectionHeaderTitle: { fontSize: 15, fontWeight: '800', color: colors.text, marginTop: 8, letterSpacing: 0.5 },
+  sectionHeader: { fontSize: 14, fontWeight: '800', color: colors.accent, marginBottom: 12, letterSpacing: 0.2 },
+  sectionHeaderTitle: { fontSize: 15, fontWeight: '800', color: colors.text, marginTop: 8, letterSpacing: 0.2 },
   sectionSubhint: { fontSize: 11, color: colors.textDim, marginBottom: 12, marginTop: 2 },
   row: { flexDirection: 'row', alignItems: 'center' },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   input: {
+    fontFamily: 'IBMPlexSans_400Regular',
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 8,
@@ -366,7 +362,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
-  buttonAddText: { color: colors.ink, fontWeight: '800', letterSpacing: 0.5 },
+  buttonAddText: { color: colors.ink, fontWeight: '800', letterSpacing: 0.2 },
   chipWrapper: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
   chipMember: {
     flexDirection: 'row',
@@ -422,7 +418,8 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     backgroundColor: colors.bg,
   },
-  numericInput: { 
+  numericInput: {
+    fontFamily: 'IBMPlexSans_700Bold', 
     fontSize: 14, 
     fontWeight: '700', 
     minWidth: 60, 
@@ -444,7 +441,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
   },
-  buttonPrimaryText: { color: colors.ink, fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
+  buttonPrimaryText: { color: colors.ink, fontSize: 15, fontWeight: '800', letterSpacing: 0.2 },
   taxModeToggle: {
     flexDirection: 'row',
     backgroundColor: colors.bg,

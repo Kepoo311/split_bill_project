@@ -1,16 +1,12 @@
 import React, { useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-} from 'react-native';
+import { View, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { useCyberAlert } from '../hooks/useCyberAlert';
 import { colors } from '../theme';
+import { AppText } from '../components/AppText';
+import { Ionicons } from '@expo/vector-icons';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CameraScanner'>;
 
@@ -25,7 +21,7 @@ export const CameraScannerScreen: React.FC<Props> = ({ navigation }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#00F0FF" />
-        <Text style={styles.loadingText}>Memuat kamera...</Text>
+        <AppText style={styles.loadingText}>Memuat kamera...</AppText>
       </View>
     );
   }
@@ -34,18 +30,18 @@ export const CameraScannerScreen: React.FC<Props> = ({ navigation }) => {
     return (
       <View style={styles.permissionContainer}>
         <View style={styles.permissionCard}>
-          <Text style={styles.permissionTitle}>AKSES KAMERA DIPERLUKAN</Text>
-          <Text style={styles.permissionText}>
+          <AppText style={styles.permissionTitle}>Akses Kamera Diperlukan</AppText>
+          <AppText style={styles.permissionText}>
             Untuk scan struk, aplikasi memerlukan izin akses kamera.
-          </Text>
+          </AppText>
           <TouchableOpacity style={styles.grantButton} onPress={requestPermission}>
-            <Text style={styles.grantButtonText}>Berikan Izin</Text>
+            <AppText style={styles.grantButtonText}>Berikan Izin</AppText>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.cancelButton}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.cancelButtonText}>Batal</Text>
+            <AppText style={styles.cancelButtonText}>Batal</AppText>
           </TouchableOpacity>
         </View>
       </View>
@@ -88,13 +84,13 @@ export const CameraScannerScreen: React.FC<Props> = ({ navigation }) => {
             style={styles.closeButton}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.closeButtonText}>✕ TUTUP</Text>
+            <AppText style={styles.closeButtonText}>Tutup</AppText>
           </TouchableOpacity>
           <View style={styles.statusBadge}>
-            <Text style={styles.statusBadgeText}>🎯 SCAN MODE</Text>
+            <AppText style={styles.statusBadgeText}>Mode Scan</AppText>
           </View>
           <TouchableOpacity style={styles.flipButton} onPress={toggleCameraFacing}>
-            <Text style={styles.flipButtonText}>🔄</Text>
+            <Ionicons name="camera-reverse-outline" size={20} color={colors.text} />
           </TouchableOpacity>
         </View>
 
@@ -109,8 +105,8 @@ export const CameraScannerScreen: React.FC<Props> = ({ navigation }) => {
 
             {/* Center guide text */}
             <View style={styles.centerGuide}>
-              <Text style={styles.guideText}>POSISIKAN STRUK</Text>
-              <Text style={styles.guideSubtext}>di dalam frame cyber guide</Text>
+              <AppText style={styles.guideText}>Posisikan Struk</AppText>
+              <AppText style={styles.guideSubtext}>di dalam bingkai</AppText>
             </View>
           </View>
 
@@ -123,9 +119,9 @@ export const CameraScannerScreen: React.FC<Props> = ({ navigation }) => {
         {/* Bottom Control Panel */}
         <View style={styles.bottomPanel}>
           <View style={styles.instructionBox}>
-            <Text style={styles.instructionText}>
-              ⚡ Pastikan pencahayaan cukup dan struk dalam fokus
-            </Text>
+            <AppText style={styles.instructionText}>
+              Pastikan pencahayaan cukup dan struk dalam fokus
+            </AppText>
           </View>
 
           <TouchableOpacity
@@ -137,7 +133,7 @@ export const CameraScannerScreen: React.FC<Props> = ({ navigation }) => {
               <ActivityIndicator size="large" color="#0A0A0F" />
             ) : (
               <View style={styles.captureButtonInner}>
-                <Text style={styles.captureButtonText}>SCAN</Text>
+                <AppText style={styles.captureButtonText}>SCAN</AppText>
               </View>
             )}
           </TouchableOpacity>
@@ -178,7 +174,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     color: colors.accent,
-    letterSpacing: 1,
+    letterSpacing: 0.3,
     marginBottom: 12,
   },
   permissionText: {
@@ -200,7 +196,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
   },
-  grantButtonText: { color: colors.ink, fontSize: 14, fontWeight: '800', letterSpacing: 0.5 },
+  grantButtonText: { color: colors.ink, fontSize: 14, fontWeight: '800', letterSpacing: 0.2 },
   cancelButton: { paddingVertical: 10 },
   cancelButtonText: { color: colors.textDim, fontSize: 13, fontWeight: '600' },
   topHUD: {
@@ -220,7 +216,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
   },
-  closeButtonText: { color: colors.danger, fontSize: 12, fontWeight: '800', letterSpacing: 0.5 },
+  closeButtonText: { color: colors.danger, fontSize: 12, fontWeight: '800', letterSpacing: 0.2 },
   statusBadge: {
     backgroundColor: colors.accentSoft,
     borderWidth: 1,
@@ -229,7 +225,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
   },
-  statusBadgeText: { color: colors.accent, fontSize: 12, fontWeight: '800', letterSpacing: 0.5 },
+  statusBadgeText: { color: colors.accent, fontSize: 12, fontWeight: '800', letterSpacing: 0.2 },
   flipButton: {
     backgroundColor: colors.accentSoft,
     borderWidth: 1,
@@ -278,7 +274,7 @@ const styles = StyleSheet.create({
     color: colors.accent,
     fontSize: 16,
     fontWeight: '800',
-    letterSpacing: 1,
+    letterSpacing: 0.3,
     textAlign: 'center',
   },
   guideSubtext: {
@@ -356,6 +352,6 @@ const styles = StyleSheet.create({
     color: colors.accent,
     fontSize: 12,
     fontWeight: '900',
-    letterSpacing: 1,
+    letterSpacing: 0.3,
   },
 });

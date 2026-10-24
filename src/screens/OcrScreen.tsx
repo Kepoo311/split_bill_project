@@ -1,14 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TextInput,
-  TouchableOpacity,
-  Pressable,
-  StyleSheet,
-  ActivityIndicator,
-} from 'react-native';
+import { View, FlatList, TextInput, TouchableOpacity, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { parseReceiptText, detectReceiptExtras } from '../utils/ocrParser';
 import { processReceiptOCR } from '../utils/ocrProcessor';
@@ -25,6 +16,8 @@ import { useCyberAlert } from '../hooks/useCyberAlert';
 import { TopBar } from '../components/TopBar';
 import { colors } from '../theme';
 import { formatNumber } from '../utils/format';
+import { AppText } from '../components/AppText';
+import { Ionicons } from '@expo/vector-icons';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Ocr'>;
 
@@ -45,7 +38,7 @@ function OcrItemRow({ item, onUpdate, onDelete }: OcrItemRowProps) {
         placeholderTextColor={colors.textDim}
       />
       <View style={styles.priceContainer}>
-        <Text style={styles.currencyPrefix}>Rp</Text>
+        <AppText style={styles.currencyPrefix}>Rp</AppText>
         <TextInput
           style={styles.priceInput}
           value={item.harga > 0 ? item.harga.toString() : ''}
@@ -61,7 +54,7 @@ function OcrItemRow({ item, onUpdate, onDelete }: OcrItemRowProps) {
         accessibilityLabel={`Hapus item ${item.nama_item}`}
         hitSlop={6}
       >
-        <Text style={styles.deleteButtonText}>✕</Text>
+        <Ionicons name="close" size={14} color={colors.danger} />
       </TouchableOpacity>
     </View>
   );
@@ -284,10 +277,10 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
               onPress={handleShowRawText}
               style={[styles.addButton, { backgroundColor: 'rgba(148, 163, 184, 0.2)' }]}
             >
-              <Text style={styles.addButtonText}>Teks</Text>
+              <AppText style={styles.addButtonText}>Teks</AppText>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleAddItem} style={styles.addButton}>
-              <Text style={styles.addButtonText}>+ Item</Text>
+              <AppText style={styles.addButtonText}>+ Item</AppText>
             </TouchableOpacity>
           </View>
         }
@@ -302,38 +295,38 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
           placeholder={colors.surface}
         />
         <View style={styles.previewTextWrapper}>
-          <Text style={styles.statusLabel}>
+          <AppText style={styles.statusLabel}>
             {`${items.length} item siap dibagikan`}
-          </Text>
-          <Text style={styles.hintLabel}>Koreksi atau tambah menu secara langsung</Text>
+          </AppText>
+          <AppText style={styles.hintLabel}>Koreksi atau tambah menu secara langsung</AppText>
         </View>
       </View>
 
       {learnNote ? (
         <View style={styles.learnNoteCard}>
-          <Text style={styles.learnNoteText}>✨ {learnNote}</Text>
+          <AppText style={styles.learnNoteText}>{learnNote}</AppText>
         </View>
       ) : null}
 
       {(detectedTax || detectedService || detectedDiscount) && (
         <View style={styles.detectedExtrasCard}>
-          <Text style={styles.detectedExtrasTitle}>✨ Terdeteksi Otomatis:</Text>
+          <AppText style={styles.detectedExtrasTitle}>Terdeteksi otomatis:</AppText>
           <View style={styles.detectedBadgeRow}>
             {detectedTax ? (
               <View style={styles.detectedBadge}>
-                <Text style={styles.detectedBadgeText}>
+                <AppText style={styles.detectedBadgeText}>
                   Pajak: {detectedTaxMode === 'nominal' ? `Rp ${formatNumber(parseInt(detectedTax, 10))}` : `${detectedTax}%`}
-                </Text>
+                </AppText>
               </View>
             ) : null}
             {detectedService && (
               <View style={styles.detectedBadge}>
-                <Text style={styles.detectedBadgeText}>Service: Rp {detectedService}</Text>
+                <AppText style={styles.detectedBadgeText}>Service: Rp {detectedService}</AppText>
               </View>
             )}
             {detectedDiscount && (
               <View style={styles.detectedBadge}>
-                <Text style={styles.detectedBadgeText}>Diskon: Rp {detectedDiscount}</Text>
+                <AppText style={styles.detectedBadgeText}>Diskon: Rp {detectedDiscount}</AppText>
               </View>
             )}
           </View>
@@ -343,7 +336,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
       {loading ? (
         <View style={styles.loadingWrapper}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Memproses OCR Offline...</Text>
+          <AppText style={styles.loadingText}>Memproses OCR Offline...</AppText>
         </View>
       ) : (
           <FlatList
@@ -371,7 +364,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
           disabled={loading || items.length === 0}
           accessibilityRole="button"
         >
-          <Text style={styles.confirmButtonText}>Lanjut ke Bagi Tagihan →</Text>
+          <AppText style={styles.confirmButtonText}>Lanjut ke Bagi Tagihan →</AppText>
         </Pressable>
       </View>
       {cyberAlertModal}
@@ -389,7 +382,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.accent,
   },
-  addButtonText: { color: colors.accent, fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
+  addButtonText: { color: colors.accent, fontSize: 12, fontWeight: '700', letterSpacing: 0.2 },
   previewContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -407,7 +400,7 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
   },
   previewTextWrapper: { marginLeft: 12, flex: 1 },
-  statusLabel: { fontSize: 13, fontWeight: '700', color: colors.text, letterSpacing: 0.5 },
+  statusLabel: { fontSize: 13, fontWeight: '700', color: colors.text, letterSpacing: 0.2 },
   hintLabel: { fontSize: 11, color: colors.textDim, marginTop: 2 },
   learnNoteCard: {
     paddingHorizontal: 16,
@@ -418,7 +411,7 @@ const styles = StyleSheet.create({
   },
   learnNoteText: { color: colors.success, fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
   loadingWrapper: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg },
-  loadingText: { marginTop: 12, color: colors.textDim, fontSize: 13, letterSpacing: 0.5 },
+  loadingText: { marginTop: 12, color: colors.textDim, fontSize: 13, letterSpacing: 0.2 },
   listContainer: { padding: 16, paddingBottom: 30 },
   itemRow: {
     flexDirection: 'row',
@@ -430,7 +423,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  nameInput: { 
+  nameInput: {
+    fontFamily: 'IBMPlexSans_400Regular', 
     flex: 1, 
     fontSize: 14, 
     color: colors.text, 
@@ -440,6 +434,7 @@ const styles = StyleSheet.create({
   priceContainer: { flexDirection: 'row', alignItems: 'center', marginLeft: 8 },
   currencyPrefix: { fontSize: 13, color: colors.textDim, marginRight: 2, fontWeight: '600' },
   priceInput: {
+    fontFamily: 'IBMPlexSans_700Bold',
     fontSize: 14,
     fontWeight: '700',
     color: colors.accent,
@@ -472,7 +467,7 @@ const styles = StyleSheet.create({
     color: colors.ink, 
     fontSize: 15, 
     fontWeight: '800',
-    letterSpacing: 1,
+    letterSpacing: 0.3,
   },
   detectedExtrasCard: {
     paddingHorizontal: 16,
@@ -486,7 +481,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     marginBottom: 6,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   detectedBadgeRow: {
     flexDirection: 'row',

@@ -1,14 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Pressable,
-  Modal,
-  FlatList,
-  Linking,
-  StyleSheet,
-} from 'react-native';
+import { View, TouchableOpacity, Pressable, Modal, FlatList, Linking, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
@@ -28,6 +19,7 @@ import {
 } from '../utils/groupBalance';
 import { formatRupiah, formatDateShortTime } from '../utils/format';
 import { colors } from '../theme';
+import { AppText } from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GroupDetail'>;
 
@@ -115,7 +107,7 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       <SafeAreaView style={styles.container}>
         <TopBar title="Grup" onBack={() => navigation.goBack()} />
         <View style={styles.missingBox}>
-          <Text style={styles.missingText}>Grup tidak ditemukan.</Text>
+          <AppText style={styles.missingText}>Grup tidak ditemukan.</AppText>
         </View>
       </SafeAreaView>
     );
@@ -202,35 +194,35 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         ListHeaderComponent={
           <View>
             <View style={styles.summaryCard}>
-              <Text style={styles.summaryLabel}>TOTAL BELANJA GRUP</Text>
-              <Text style={styles.summaryValue}>{formatRupiah(totals.totalSpent)}</Text>
-              <Text style={styles.summaryMeta}>
+              <AppText style={styles.summaryLabel}>Total Belanja Grup</AppText>
+              <AppText style={styles.summaryValue}>{formatRupiah(totals.totalSpent)}</AppText>
+              <AppText style={styles.summaryMeta}>
                 {group.entries.length} struk • {group.members.length} anggota
-              </Text>
+              </AppText>
               {totals.unattributedCount > 0 && (
-                <Text style={styles.summaryWarn}>
-                  ⚠️ {totals.unattributedCount} struk tanpa pencatat penalang —
+                <AppText style={styles.summaryWarn}>
+                  {totals.unattributedCount} struk tanpa pencatat penalang —
                   tidak masuk perhitungan saling-nalangin.
-                </Text>
+                </AppText>
               )}
             </View>
 
             {suggestions.length > 0 && (
               <View style={styles.settleCard}>
-                <Text style={styles.sectionTitle}>CARA BERESIN TAGIHAN</Text>
-                <Text style={styles.sectionHint}>
+                <AppText style={styles.sectionTitle}>Cara Beresin Tagihan</AppText>
+                <AppText style={styles.sectionHint}>
                   Cukup {suggestions.length} transfer — terhitung otomatis biar semua impas.
-                </Text>
+                </AppText>
                 {suggestions.map((t) => (
                   <View key={`${t.fromId}-${t.toId}`} style={styles.transferRow}>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.transferText}>
-                        <Text style={styles.transferFrom}>{t.fromName}</Text>
+                      <AppText style={styles.transferText}>
+                        <AppText style={styles.transferFrom}>{t.fromName}</AppText>
                         {' bayar '}
-                        <Text style={styles.transferAmount}>{formatRupiah(t.amount)}</Text>
+                        <AppText style={styles.transferAmount}>{formatRupiah(t.amount)}</AppText>
                         {' ke '}
-                        <Text style={styles.transferTo}>{t.toName}</Text>
-                      </Text>
+                        <AppText style={styles.transferTo}>{t.toName}</AppText>
+                      </AppText>
                     </View>
                     <TouchableOpacity
                       style={styles.tagihBtn}
@@ -239,17 +231,17 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                       accessibilityRole="button"
                       accessibilityLabel={`Tagih ${t.fromName} via WhatsApp`}
                     >
-                      <Text style={styles.tagihBtnText}>Tagih 📨</Text>
+                      <AppText style={styles.tagihBtnText}>Tagih</AppText>
                     </TouchableOpacity>
                   </View>
                 ))}
               </View>
             )}
 
-            <Text style={styles.sectionTitle}>SALDO ANGGOTA</Text>
-            <Text style={styles.sectionHint}>
+            <AppText style={styles.sectionTitle}>Saldo Anggota</AppText>
+            <AppText style={styles.sectionHint}>
               Tap anggota yang berutang untuk tandai lunas (bukti TF opsional)
-            </Text>
+            </AppText>
           </View>
         }
         renderItem={({ item }) => {
@@ -289,12 +281,12 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                 />
               ) : (
                 <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{item.name.slice(0, 1).toUpperCase()}</Text>
+                  <AppText style={styles.avatarText}>{item.name.slice(0, 1).toUpperCase()}</AppText>
                 </View>
               )}
               <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={styles.memberName}>{item.name}</Text>
-                <Text
+                <AppText style={styles.memberName}>{item.name}</AppText>
+                <AppText
                   style={[
                     styles.statusText,
                     isDebtor && !settlement
@@ -306,7 +298,7 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                   numberOfLines={2}
                 >
                   {statusText}
-                </Text>
+                </AppText>
               </View>
             </>
           );
@@ -327,10 +319,10 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         }}
         ListFooterComponent={
           <View>
-            <Text style={[styles.sectionTitle, { marginTop: 22 }]}>STRUK DI GRUP INI</Text>
+            <AppText style={[styles.sectionTitle, { marginTop: 22 }]}>Struk di Grup Ini</AppText>
             {group.entries.length === 0 && (
               <View style={styles.emptyBox}>
-                <Text style={styles.emptyText}>Belum ada struk di grup ini</Text>
+                <AppText style={styles.emptyText}>Belum ada struk di grup ini</AppText>
               </View>
             )}
             {group.entries.map((entry) => {
@@ -338,18 +330,18 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               if (!bill) {
                 return (
                   <View key={entry.billId} style={styles.billRow}>
-                    <Text style={styles.billTitle}>Struk sudah terhapus dari riwayat</Text>
+                    <AppText style={styles.billTitle}>Struk sudah terhapus dari riwayat</AppText>
                   </View>
                 );
               }
               return (
                 <View key={entry.billId} style={styles.billRow}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.billTitle} numberOfLines={1}>{bill.title}</Text>
-                    <Text style={styles.billMeta}>
+                    <AppText style={styles.billTitle} numberOfLines={1}>{bill.title}</AppText>
+                    <AppText style={styles.billMeta}>
                       {formatDateShortTime(bill.date)} • Nalangin: {payerName(entry.payerId)}
-                    </Text>
-                    <Text style={styles.billAmount}>{formatRupiah(bill.grandTotal)}</Text>
+                    </AppText>
+                    <AppText style={styles.billAmount}>{formatRupiah(bill.grandTotal)}</AppText>
                   </View>
                   <TouchableOpacity
                     onPress={() => handleRemoveEntry(entry.billId)}
@@ -358,7 +350,7 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                     accessibilityRole="button"
                     accessibilityLabel={`Keluarkan ${bill.title} dari grup`}
                   >
-                    <Text style={styles.removeBtnText}>✕</Text>
+                    <AppText style={styles.removeBtnText}>✕</AppText>
                   </TouchableOpacity>
                 </View>
               );
@@ -369,7 +361,7 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               accessibilityRole="button"
               accessibilityLabel="Tambahkan struk dari riwayat"
             >
-              <Text style={styles.addBillBtnText}>＋ Tambahkan Struk dari Riwayat</Text>
+              <AppText style={styles.addBillBtnText}>＋ Tambahkan Struk dari Riwayat</AppText>
             </TouchableOpacity>
             <View style={{ height: 40 }} />
           </View>
@@ -403,7 +395,7 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               ]
             : [
                 { text: '✓ Lunas (tanpa bukti)', onPress: () => handleSettle(false) },
-                { text: '📸 Lunas + Bukti TF', onPress: () => handleSettle(true) },
+                { text: 'Lunas + Bukti TF', onPress: () => handleSettle(true) },
               ]),
           { text: 'Tutup', style: 'cancel' as const },
         ]}
@@ -412,7 +404,7 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       {/* Pilih struk dari riwayat */}
       <CyberModal
         visible={showBillPicker}
-        title="TAMBAH STRUK"
+        title="Tambah Struk"
         message={candidateBills.length === 0 ? 'Semua struk riwayat sudah masuk grup ini.' : 'Pilih struk:'}
         onClose={() => setShowBillPicker(false)}
         buttons={[{ text: 'Tutup', style: 'cancel' }]}
@@ -425,10 +417,10 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             accessibilityRole="button"
             accessibilityLabel={`Pilih ${b.title}`}
           >
-            <Text style={styles.pickerTitle} numberOfLines={1}>{b.title}</Text>
-            <Text style={styles.pickerMeta}>
+            <AppText style={styles.pickerTitle} numberOfLines={1}>{b.title}</AppText>
+            <AppText style={styles.pickerMeta}>
               {formatDateShortTime(b.date)} • {formatRupiah(b.grandTotal)}
-            </Text>
+            </AppText>
           </TouchableOpacity>
         ))}
       </CyberModal>
@@ -449,7 +441,7 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             accessibilityRole="button"
             accessibilityLabel={`${m.name} yang menalangi`}
           >
-            <Text style={styles.pickerTitle}>{m.name}</Text>
+            <AppText style={styles.pickerTitle}>{m.name}</AppText>
           </TouchableOpacity>
         ))}
         <TouchableOpacity
@@ -458,9 +450,9 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           accessibilityRole="button"
           accessibilityLabel="Tidak dicatat siapa penalang"
         >
-          <Text style={[styles.pickerTitle, { color: colors.textDim }]}>
+          <AppText style={[styles.pickerTitle, { color: colors.textDim }]}>
             Tidak dicatat (bayar masing-masing)
-          </Text>
+          </AppText>
         </TouchableOpacity>
       </CyberModal>
 
@@ -475,7 +467,7 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               transition={150}
             />
           )}
-          <Text style={styles.proofHint}>Tap di mana saja untuk menutup</Text>
+          <AppText style={styles.proofHint}>Tap di mana saja untuk menutup</AppText>
         </Pressable>
       </Modal>
 
@@ -501,11 +493,11 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 20,
   },
-  summaryLabel: { fontSize: 10, color: colors.textDim, fontWeight: '700', letterSpacing: 1.5 },
+  summaryLabel: { fontSize: 10, color: colors.textDim, fontWeight: '700', letterSpacing: 0.4 },
   summaryValue: { fontSize: 26, fontWeight: '900', color: colors.accent, marginTop: 4 },
   summaryMeta: { fontSize: 11, color: colors.textDim, marginTop: 6 },
   summaryWarn: { fontSize: 10, color: colors.warning, marginTop: 8, lineHeight: 14 },
-  sectionTitle: { fontSize: 13, fontWeight: '800', color: colors.accent, letterSpacing: 1 },
+  sectionTitle: { fontSize: 13, fontWeight: '800', color: colors.accent, letterSpacing: 0.3 },
   sectionHint: { fontSize: 10, color: colors.textDim, marginTop: 4, marginBottom: 10 },
   memberCard: {
     flexDirection: 'row',
@@ -601,7 +593,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
     justifyContent: 'center',
   },
-  addBillBtnText: { color: colors.accent, fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  addBillBtnText: { color: colors.accent, fontSize: 13, fontWeight: '800', letterSpacing: 0.2 },
   emptyBox: {
     padding: 18,
     backgroundColor: colors.surface,

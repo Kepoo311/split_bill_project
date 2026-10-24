@@ -2,12 +2,12 @@ import React from 'react';
 import {
   Modal,
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   TouchableWithoutFeedback,
 } from 'react-native';
 import { colors } from '../theme';
+import { AppText } from './AppText';
 
 export interface CyberModalButton {
   text: string;
@@ -43,11 +43,8 @@ export const CyberModal: React.FC<CyberModalProps> = ({
         <View style={styles.backdrop}>
           <TouchableWithoutFeedback>
             <View style={styles.card}>
-              {/* Header Glowing Accent */}
-              <View style={styles.topGlow} />
-
-              <Text style={styles.title}>{title}</Text>
-              {message ? <Text style={styles.message}>{message}</Text> : null}
+              <AppText style={styles.title}>{title}</AppText>
+              {message ? <AppText style={styles.message}>{message}</AppText> : null}
 
               {children}
 
@@ -70,7 +67,7 @@ export const CyberModal: React.FC<CyberModalProps> = ({
                         else if (onClose) onClose();
                       }}
                     >
-                      <Text
+                      <AppText
                         style={[
                           styles.buttonText,
                           isCancel && styles.buttonTextCancel,
@@ -79,7 +76,7 @@ export const CyberModal: React.FC<CyberModalProps> = ({
                         ]}
                       >
                         {btn.text}
-                      </Text>
+                      </AppText>
                     </TouchableOpacity>
                   );
                 })}
@@ -108,32 +105,19 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
     borderColor: colors.border,
-    shadowColor: colors.accent,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 10,
     overflow: 'hidden',
   },
-  topGlow: {
-    position: 'absolute',
-    top: 0,
-    left: 20,
-    right: 20,
-    height: 2,
-    backgroundColor: colors.accent,
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 6,
-  },
   title: {
     fontSize: 16,
-    fontWeight: '800',
-    color: colors.accent,
-    letterSpacing: 0.8,
+    fontWeight: '700',
+    color: colors.text,
+    letterSpacing: 0.2,
     marginBottom: 8,
-    textTransform: 'uppercase',
   },
   message: {
     fontSize: 13,
@@ -161,7 +145,7 @@ const styles = StyleSheet.create({
   buttonCancel: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.border,
   },
   buttonDestructive: {
     backgroundColor: colors.dangerSoft,
@@ -170,11 +154,11 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
   buttonTextPrimary: {
-    color: colors.bg,
+    color: colors.ink,
   },
   buttonTextCancel: {
     color: colors.textMuted,

@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, Pressable, AppState, StyleSheet } from 'react-native';
+import { View, Pressable, AppState, StyleSheet } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useUpdateStore } from '../store/updateStore';
 import { colors } from '../theme';
+import { AppText } from './AppText';
+import { Ionicons } from '@expo/vector-icons';
 
 /**
  * Gerbang kunci biometrik: menutup aplikasi di belakang overlay sampai
@@ -63,11 +65,11 @@ export const LockGate: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   return (
     <View style={styles.container}>
-      <Text style={styles.icon}>🔒</Text>
-      <Text style={styles.title}>Split Bill Terkunci</Text>
-      <Text style={styles.message}>
+      <Ionicons name="lock-closed-outline" size={34} color={colors.accent} />
+      <AppText style={styles.title}>Split Bill Terkunci</AppText>
+      <AppText style={styles.message}>
         Verifikasi dengan sidik jari, wajah, atau PIN untuk melanjutkan.
-      </Text>
+      </AppText>
       <Pressable
         style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
         onPress={tryUnlock}
@@ -75,7 +77,7 @@ export const LockGate: React.FC<{ children: React.ReactNode }> = ({ children }) 
         accessibilityRole="button"
         accessibilityLabel="Buka dengan biometrik"
       >
-        <Text style={styles.buttonText}>{checking ? 'Memeriksa...' : 'Buka 🔓'}</Text>
+        <AppText style={styles.buttonText}>{checking ? 'Memeriksa…' : 'Buka'}</AppText>
       </Pressable>
     </View>
   );
@@ -107,5 +109,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonPressed: { opacity: 0.7 },
-  buttonText: { color: colors.ink, fontSize: 14, fontWeight: '800', letterSpacing: 0.5 },
+  buttonText: { color: colors.ink, fontSize: 14, fontWeight: '800', letterSpacing: 0.2 },
 });
