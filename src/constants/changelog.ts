@@ -1,5 +1,13 @@
 export const CHANGELOG = [
   {
+    version: '1.0.3',
+    date: '2026-10-24',
+    items: [
+      'Banner pembaruan di Beranda: tombol Update/Restart muncul saat ada versi baru',
+      'Setting baru: mode Update Otomatis / Manual + tombol Cek Pembaruan Sekarang',
+    ],
+  },
+  {
     version: '1.0.2',
     date: '2026-10-24',
     items: [

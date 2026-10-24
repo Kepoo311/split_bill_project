@@ -13,6 +13,7 @@ import { useBillStore } from '../store/billStore';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { CyberModal } from '../components/CyberModal';
+import { UpdateBanner } from '../components/UpdateBanner';
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -96,6 +97,8 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </View>
       </TouchableOpacity>
+
+      <UpdateBanner />
 
       <View style={styles.historySection}>
         <View style={styles.sectionHeader}>

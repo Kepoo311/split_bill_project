@@ -7,11 +7,16 @@ import {
   StyleSheet,
   ScrollView,
   Image,
+  Switch,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
+import * as Updates from 'expo-updates';
 import { useBillStore } from '../store/billStore';
+import { useUpdateStore, type UpdateResult } from '../store/updateStore';
+import { CHANGELOG } from '../constants/changelog';
 import { PaymentMethod, RootStackParamList } from '../types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CyberModal } from '../components/CyberModal';
@@ -30,6 +35,17 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMsg, setModalMsg] = useState('');
+
+  // State section Pembaruan Aplikasi
+  const autoUpdate = useUpdateStore((s) => s.autoUpdate);
+  const isChecking = useUpdateStore((s) => s.isChecking);
+  const isDownloading = useUpdateStore((s) => s.isDownloading);
+  const updateDownloaded = useUpdateStore((s) => s.updateDownloaded);
+  const [updateStatus, setUpdateStatus] = useState<string>('');
+
+  useEffect(() => {
+    useUpdateStore.getState().loadPrefs();
+  }, []);
 
   const showCyberAlert = (title: string, message: string) => {
     setModalTitle(title);
@@ -117,6 +133,22 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     } catch {
       showCyberAlert('Gagal Menghapus', 'Metode pembayaran tidak dapat dihapus dari penyimpanan lokal.');
     }
+  };
+
+  const handleToggleAutoUpdate = async (value: boolean) => {
+    await useUpdateStore.getState().setAutoUpdate(value);
+  };
+
+  const handleCheckUpdate = async () => {
+    setUpdateStatus('');
+    const result = await useUpdateStore.getState().checkAndFetch();
+    const messages: Record<UpdateResult, string> = {
+      uptodate: '✅ Kamu sudah memakai versi terbaru.',
+      ready: '⬇️ Pembaruan terunduh — buka Beranda lalu tap "Restart" untuk memasang.',
+      error: '⚠️ Gagal memeriksa pembaruan. Pastikan internet aktif lalu coba lagi.',
+      disabled: 'Pembaruan OTA tidak aktif di build pengembangan.',
+    };
+    setUpdateStatus(messages[result]);
   };
 
   return (
@@ -244,6 +276,57 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             </View>
           ))
         )}
+
+        {/* Section Pembaruan Aplikasi */}
+        <Text style={styles.sectionTitle}>Pembaruan Aplikasi</Text>
+        <View style={styles.card}>
+          <View style={styles.updateRow}>
+            <View style={styles.updateTextWrap}>
+              <Text style={styles.updateLabel}>Update Otomatis</Text>
+              <Text style={styles.subHint}>
+                Aktif: app mengecek & mengunduh pembaruan di background setiap dibuka. Mati:
+                pembaruan hanya dicek lewat tombol di bawah.
+              </Text>
+            </View>
+            <Switch
+              value={autoUpdate}
+              onValueChange={handleToggleAutoUpdate}
+              trackColor={{ true: '#38BDF8', false: '#1E293B' }}
+              thumbColor="#F9FAFB"
+            />
+          </View>
+
+          {updateDownloaded ? (
+            <TouchableOpacity
+              style={styles.restartBtn}
+              onPress={() => useUpdateStore.getState().applyUpdate()}
+            >
+              <Text style={styles.restartBtnText}>↻ Mulai Ulang Sekarang</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.checkBtn, (isChecking || isDownloading) && styles.btnDisabled]}
+              onPress={handleCheckUpdate}
+              disabled={isChecking || isDownloading}
+            >
+              {isChecking || isDownloading ? (
+                <View style={styles.checkBtnLoading}>
+                  <ActivityIndicator size="small" color="#070A10" />
+                  <Text style={styles.checkBtnText}>
+                    {isChecking ? 'Memeriksa...' : 'Mengunduh...'}
+                  </Text>
+                </View>
+              ) : (
+                <Text style={styles.checkBtnText}>Cek Pembaruan Sekarang</Text>
+              )}
+            </TouchableOpacity>
+          )}
+
+          {updateStatus ? <Text style={styles.updateStatus}>{updateStatus}</Text> : null}
+          <Text style={styles.versionInfo}>
+            Versi {CHANGELOG[0].version} • Channel {Updates.channel ?? '-'}
+          </Text>
+        </View>
       </ScrollView>
 
       <CyberModal
@@ -383,4 +466,29 @@ const styles = StyleSheet.create({
     borderColor: '#EF4444',
   },
   deleteBtnText: { color: '#EF4444', fontSize: 11, fontWeight: '700' },
+  updateRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  updateTextWrap: { flex: 1 },
+  updateLabel: { fontSize: 13, fontWeight: '800', color: '#F9FAFB', marginBottom: 4 },
+  checkBtn: {
+    backgroundColor: '#38BDF8',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 14,
+  },
+  checkBtnLoading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  checkBtnText: { color: '#070A10', fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  restartBtn: {
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    borderWidth: 1,
+    borderColor: '#38BDF8',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 14,
+  },
+  restartBtnText: { color: '#38BDF8', fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  updateStatus: { color: '#94A3B8', fontSize: 11, marginTop: 10, lineHeight: 16 },
+  versionInfo: { color: '#475569', fontSize: 10, marginTop: 10, letterSpacing: 0.3 },
+  btnDisabled: { opacity: 0.6 },
 });
