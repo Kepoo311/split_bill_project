@@ -18,6 +18,8 @@
 
 Aplikasi masih dalam tahap pengembangan. Hasil OCR dan parsing perlu diperiksa sebelum tagihan disimpan atau dibagikan.
 
+> Untuk kontributor & agent: baca [`docs/PROJECT_NOTES.md`](docs/PROJECT_NOTES.md) — panduan OTA vs build ulang, arsitektur, konvensi, dan pelajaran proyek.
+
 ## Fitur
 
 - Memindai struk dengan kamera atau memilih foto dari galeri.

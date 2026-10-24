@@ -25,9 +25,12 @@ Run lint and typecheck before declaring any task done.
 
 ## Navigation & Routing
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
+- This app uses **React Navigation** (native stack), NOT Expo Router. Screens live in `src/screens/`, navigators in `src/navigation/AppNavigator.tsx`, route types in `src/types/index.ts` (`RootStackParamList`).
+- Import `NativeStackScreenProps` from `@react-navigation/native-stack`.
+
+## 📘 PROJECT NOTES — WAJIB BACA
+
+`docs/PROJECT_NOTES.md` berisi pengetahuan operasional proyek ini: **kapan cukup `eas update` vs wajib `eas build`**, flag yang benar untuk tiap perintah, proses rilis GitHub, peta arsitektur, invariant yang dilindungi test (Σ totalBayar = grandTotal, saldo grup = 0), konvensi kode, dan daftar pelajaran keras (Hermes/randomUUID, larangan fingerprint runtime di Windows CRLF, dll). Baca sebelum mengirim apapun ke perangkat atau mengubah parser/split logic.
 
 ## Building with EAS
 
