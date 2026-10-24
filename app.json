@@ -61,7 +61,7 @@
       "url": "https://u.expo.dev/20466dcc-2296-4b56-a5ad-04f88c034647"
     },
     "runtimeVersion": {
-      "policy": "fingerprint"
+      "policy": "appVersion"
     },
     "owner": "kepoxx"
   }
