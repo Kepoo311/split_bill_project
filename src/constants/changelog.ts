@@ -1,5 +1,14 @@
 export const CHANGELOG = [
   {
+    version: '1.0.7',
+    date: '2026-10-24',
+    items: [
+      'Aplikasi kini benar-benar belajar dari koreksimu: struk yang pernah kamu koreksi langsung tampil benar saat di-scan ulang',
+      'Salah baca nama item (mis. "MlE AYAM") otomatis diperbaiki dari koreksi lamamu di merchant yang sama',
+      'Peringatan hijau muncul di hasil scan saat koreksi lamamu diterapkan',
+    ],
+  },
+  {
     version: '1.0.6',
     date: '2026-10-24',
     items: [

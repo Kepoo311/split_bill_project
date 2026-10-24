@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { parseReceiptText, detectReceiptExtras } from '../utils/ocrParser';
 import { processReceiptOCR } from '../utils/ocrProcessor';
+import { buildLearningIndex, applyLearning } from '../utils/ocrLearning';
 import { generateId } from '../utils/ids';
 import { Image } from 'expo-image';
 import type { TextRecognitionResult } from '@react-native-ml-kit/text-recognition';
@@ -79,6 +80,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
   const [detectedTaxMode, setDetectedTaxMode] = useState<'nominal' | 'percent'>('nominal');
   const [detectedService, setDetectedService] = useState<string>('');
   const [detectedDiscount, setDetectedDiscount] = useState<string>('');
+  const [learnNote, setLearnNote] = useState('');
   const saveLearningData = useBillStore((s) => s.saveLearningData);
   const loadLearningData = useBillStore((s) => s.loadLearningData);
   const { showCyberAlert, cyberAlertModal } = useCyberAlert();
@@ -87,6 +89,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
   // useCallback); identitas hanya berubah saat foto berganti.
   const runOcr = useCallback(async () => {
     setLoading(true);
+    setLearnNote('');
     try {
       let recognizedText = '';
       let recognitionError: string | null = null;
@@ -134,8 +137,16 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
       setOcrRawText(receiptText);
       const pastLearnings = await loadLearningData();
 
-      const parsed = parseReceiptText(receiptText, pastLearnings);
-      const parsedSubtotal = parsed.reduce((sum, item) => sum + item.harga, 0);
+      const parsed = parseReceiptText(receiptText);
+      const learningIndex = buildLearningIndex(pastLearnings);
+      const outcome = applyLearning(parsed, receiptText, learningIndex);
+      if (outcome.cacheHit) {
+        setLearnNote('Struk yang sama — memakai koreksi tersimpanmu');
+      } else if (outcome.fixes > 0) {
+        setLearnNote(`${outcome.fixes} perbaikan otomatis dari koreksi sebelumnya`);
+      }
+      const finalItems = outcome.items;
+      const parsedSubtotal = finalItems.reduce((sum, item) => sum + item.harga, 0);
       const extras = detectReceiptExtras(receiptText, parsedSubtotal);
       if (extras.taxMode === 'nominal' && extras.taxNominal > 0) {
         setDetectedTax(`${extras.taxNominal}`);
@@ -152,7 +163,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
       }
       
       // Jika parsing kosong, buat 1 item default agar user bisa langsung isi
-      if (parsed.length === 0) {
+      if (finalItems.length === 0) {
         setItems([
           {
             id: generateId(),
@@ -162,7 +173,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
           },
         ]);
       } else {
-        setItems(parsed);
+        setItems(finalItems);
       }
     } catch {
       showCyberAlert('Info', 'Silakan masukkan item menu secara manual.');
@@ -298,6 +309,12 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
       </View>
 
+      {learnNote ? (
+        <View style={styles.learnNoteCard}>
+          <Text style={styles.learnNoteText}>✨ {learnNote}</Text>
+        </View>
+      ) : null}
+
       {(detectedTax || detectedService || detectedDiscount) && (
         <View style={styles.detectedExtrasCard}>
           <Text style={styles.detectedExtrasTitle}>✨ Terdeteksi Otomatis:</Text>
@@ -392,6 +409,14 @@ const styles = StyleSheet.create({
   previewTextWrapper: { marginLeft: 12, flex: 1 },
   statusLabel: { fontSize: 13, fontWeight: '700', color: colors.text, letterSpacing: 0.5 },
   hintLabel: { fontSize: 11, color: colors.textDim, marginTop: 2 },
+  learnNoteCard: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.successBorder,
+  },
+  learnNoteText: { color: colors.success, fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
   loadingWrapper: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg },
   loadingText: { marginTop: 12, color: colors.textDim, fontSize: 13, letterSpacing: 0.5 },
   listContainer: { padding: 16, paddingBottom: 30 },

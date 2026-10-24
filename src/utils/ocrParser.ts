@@ -1,4 +1,4 @@
-import { BillItem, LearningData } from '../types/index';
+import { BillItem } from '../types/index';
 import { generateId } from './ids';
 
 const normalizeReceiptText = (text: string) =>
@@ -235,12 +235,10 @@ const parseNumberedReceipt = (lines: string[]): BillItem[] => {
 
 /**
  * Parses line-oriented receipt text. Input can be ML Kit's raw text or rows
- * reconstructed from its bounding boxes.
+ * reconstructed from its bounding boxes. Koreksi user tidak dipakai di sini —
+ * pemakaiannya ada di ocrLearning.applyLearning.
  */
-export const parseReceiptText = (
-  ocrRawText: string,
-  _learningData: LearningData[] = [],
-): BillItem[] => {
+export const parseReceiptText = (ocrRawText: string): BillItem[] => {
   const lines = normalizeReceiptText(ocrRawText)
     .split(/\r?\n/)
     .map((line) => line.trim())
