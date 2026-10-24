@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { useUpdateStore } from '../store/updateStore';
+import { colors } from '../theme';
 
 /**
  * Banner di Beranda yang muncul saat ada pembaruan OTA. Menyala dari
@@ -65,9 +66,9 @@ const styles = StyleSheet.create({
   banner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    backgroundColor: colors.infoSoft,
     borderWidth: 1,
-    borderColor: '#38BDF8',
+    borderColor: colors.info,
     borderRadius: 12,
     padding: 12,
     marginBottom: 14,
@@ -80,16 +81,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  icon: { fontSize: 16, color: '#38BDF8' },
+  icon: { fontSize: 16, color: colors.info },
   textWrap: { flex: 1, marginLeft: 10, marginRight: 10 },
   title: { color: '#F0F9FF', fontSize: 13, fontWeight: '800', letterSpacing: 0.3 },
-  subtitle: { color: '#94A3B8', fontSize: 11, marginTop: 2, lineHeight: 15 },
+  subtitle: { color: colors.textMuted, fontSize: 11, marginTop: 2, lineHeight: 15 },
   button: {
-    backgroundColor: '#38BDF8',
+    backgroundColor: colors.info,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 8,
   },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#070A10', fontSize: 12, fontWeight: '800', letterSpacing: 0.5 },
+  buttonText: { color: colors.bg, fontSize: 12, fontWeight: '800', letterSpacing: 0.5 },
 });

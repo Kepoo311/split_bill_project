@@ -13,6 +13,9 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { useBillStore } from '../store/billStore';
 import { useCyberAlert } from '../hooks/useCyberAlert';
+import { TopBar } from '../components/TopBar';
+import { colors } from '../theme';
+import { formatRupiah, formatDateLong } from '../utils/format';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HistoryDetail'>;
 
@@ -77,15 +80,15 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Top HUD Bar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Kembali</Text>
-        </TouchableOpacity>
-        <Text style={styles.screenTitle}>Detail Transaksi</Text>
-        <TouchableOpacity onPress={handleDelete} style={styles.deleteTopBtn}>
-          <Text style={styles.deleteTopText}>Hapus</Text>
-        </TouchableOpacity>
-      </View>
+      <TopBar
+        title="Detail Transaksi"
+        onBack={() => navigation.goBack()}
+        right={
+          <Pressable onPress={handleDelete} hitSlop={10} accessibilityRole="button" accessibilityLabel="Hapus riwayat">
+            <Text style={styles.deleteTopText}>Hapus</Text>
+          </Pressable>
+        }
+      />
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Main Header Card */}
@@ -135,32 +138,27 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
           )}
           <Text style={styles.billDate}>
-            {new Date(currentBill.date).toLocaleDateString('id-ID', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
+            {formatDateLong(currentBill.date)}
           </Text>
 
           <View style={styles.grandDivider} />
 
           <Text style={styles.grandLabel}>TOTAL TRANSAKSI</Text>
-          <Text style={styles.grandValue}>Rp {currentBill.grandTotal.toLocaleString('id-ID')}</Text>
+          <Text style={styles.grandValue}>{formatRupiah(currentBill.grandTotal)}</Text>
 
           {/* Breakdown summary */}
           <View style={styles.summaryGrid}>
             <View style={styles.gridItem}>
               <Text style={styles.gridLabel}>Pajak</Text>
-              <Text style={styles.gridVal}>Rp {currentBill.tax.toLocaleString('id-ID')}</Text>
+              <Text style={styles.gridVal}>{formatRupiah(currentBill.tax)}</Text>
             </View>
             <View style={styles.gridItem}>
               <Text style={styles.gridLabel}>Service</Text>
-              <Text style={styles.gridVal}>Rp {currentBill.service.toLocaleString('id-ID')}</Text>
+              <Text style={styles.gridVal}>{formatRupiah(currentBill.service)}</Text>
             </View>
             <View style={styles.gridItem}>
               <Text style={styles.gridLabel}>Diskon</Text>
-              <Text style={styles.gridVal}>-Rp {(currentBill.discount || 0).toLocaleString('id-ID')}</Text>
+              <Text style={styles.gridVal}>-{formatRupiah((currentBill.discount || 0))}</Text>
             </View>
           </View>
 
@@ -218,14 +216,14 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                     {res.name}
                   </Text>
                   <Text style={styles.memberShareDetail}>
-                    Menu: Rp {res.subtotal.toLocaleString('id-ID')} + Extra: Rp {(res.taxShare + res.serviceShare).toLocaleString('id-ID')}
+                    Menu: {formatRupiah(res.subtotal)} + Extra: {formatRupiah((res.taxShare + res.serviceShare))}
                   </Text>
                 </View>
               </View>
 
               <View style={styles.memberRight}>
                 <Text style={[styles.memberAmount, isPaid && styles.memberAmountPaid]}>
-                  Rp {res.totalBayar.toLocaleString('id-ID')}
+                  {formatRupiah(res.totalBayar)}
                 </Text>
                 <Text style={[styles.payStatusText, isPaid ? styles.textPaid : styles.textPending]}>
                   {isPaid ? 'LUNAS' : 'BELUM BAYAR'}
@@ -263,7 +261,7 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                     <Text style={styles.itemUnassigned}>⚠️ Belum ditugaskan</Text>
                   )}
                 </View>
-                <Text style={styles.itemPrice}>Rp {item.harga.toLocaleString('id-ID')}</Text>
+                <Text style={styles.itemPrice}>{formatRupiah(item.harga)}</Text>
               </View>
             );
           })}
@@ -277,7 +275,7 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#070A10' },
+  container: { flex: 1, backgroundColor: colors.bg },
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -285,22 +283,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
-    backgroundColor: '#0E1422',
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
   },
   backButton: { padding: 4 },
-  backButtonText: { color: '#00F0FF', fontSize: 14, fontWeight: '700', letterSpacing: 0.5 },
-  screenTitle: { fontSize: 16, fontWeight: '800', color: '#F9FAFB', letterSpacing: 1 },
+  backButtonText: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 0.5 },
+  screenTitle: { fontSize: 16, fontWeight: '800', color: colors.text, letterSpacing: 1 },
   deleteTopBtn: { padding: 4 },
-  deleteTopText: { color: '#EF4444', fontSize: 13, fontWeight: '700' },
+  deleteTopText: { color: colors.danger, fontSize: 13, fontWeight: '700' },
   scroll: { padding: 16 },
   mainCard: {
-    backgroundColor: '#0E1422',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 18,
     borderWidth: 1,
-    borderColor: '#00F0FF',
-    shadowColor: '#00F0FF',
+    borderColor: colors.accent,
+    shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
@@ -309,25 +307,25 @@ const styles = StyleSheet.create({
   },
   tagRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   hudBadge: {
-    backgroundColor: 'rgba(0, 240, 255, 0.1)',
+    backgroundColor: colors.accentSoft,
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.3)',
+    borderColor: colors.accentBorder,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
   },
-  hudBadgeText: { color: '#00F0FF', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  hudBadgeText: { color: colors.accent, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
   statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
-  paidBadge: { backgroundColor: 'rgba(16, 185, 129, 0.15)', borderWidth: 1, borderColor: '#10B981' },
-  unpaidBadge: { backgroundColor: 'rgba(245, 158, 11, 0.15)', borderWidth: 1, borderColor: '#F59E0B' },
+  paidBadge: { backgroundColor: colors.successSoft, borderWidth: 1, borderColor: colors.success },
+  unpaidBadge: { backgroundColor: colors.warningSoft, borderWidth: 1, borderColor: colors.warning },
   statusBadgeText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
-  paidBadgeText: { color: '#10B981' },
-  unpaidBadgeText: { color: '#F59E0B' },
-  billTitle: { fontSize: 20, fontWeight: '900', color: '#F9FAFB', marginTop: 12, flex: 1 },
+  paidBadgeText: { color: colors.success },
+  unpaidBadgeText: { color: colors.warning },
+  billTitle: { fontSize: 20, fontWeight: '900', color: colors.text, marginTop: 12, flex: 1 },
   titleRow: { flexDirection: 'row', alignItems: 'center' },
   titleEditBtn: {
     padding: 6,
@@ -336,7 +334,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 240, 255, 0.08)',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.3)',
+    borderColor: colors.accentBorder,
   },
   titleEditIcon: { fontSize: 13 },
   titleEditRow: {
@@ -347,96 +345,96 @@ const styles = StyleSheet.create({
   },
   titleInput: {
     flex: 1,
-    backgroundColor: '#070A10',
+    backgroundColor: colors.bg,
     borderWidth: 1,
-    borderColor: '#00F0FF',
+    borderColor: colors.accent,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 8,
     fontSize: 14,
     fontWeight: '700',
-    color: '#F9FAFB',
+    color: colors.text,
   },
   titleSaveBtn: {
-    backgroundColor: '#00F0FF',
+    backgroundColor: colors.accent,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  titleSaveText: { color: '#070A10', fontSize: 12, fontWeight: '800' },
+  titleSaveText: { color: colors.bg, fontSize: 12, fontWeight: '800' },
   titleCancelBtn: {
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.line,
   },
-  titleCancelText: { color: '#94A3B8', fontSize: 12, fontWeight: '700' },
-  billDate: { fontSize: 12, color: '#6B7280', marginTop: 2 },
-  grandDivider: { height: 1, backgroundColor: '#1E293B', marginVertical: 14 },
-  grandLabel: { fontSize: 11, color: '#6B7280', fontWeight: '700', letterSpacing: 1.5 },
-  grandValue: { fontSize: 28, fontWeight: '900', color: '#00F0FF', marginTop: 4, letterSpacing: 0.5 },
+  titleCancelText: { color: colors.textMuted, fontSize: 12, fontWeight: '700' },
+  billDate: { fontSize: 12, color: colors.textDim, marginTop: 2 },
+  grandDivider: { height: 1, backgroundColor: colors.border, marginVertical: 14 },
+  grandLabel: { fontSize: 11, color: colors.textDim, fontWeight: '700', letterSpacing: 1.5 },
+  grandValue: { fontSize: 28, fontWeight: '900', color: colors.accent, marginTop: 4, letterSpacing: 0.5 },
   summaryGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 14,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#1E293B',
+    borderTopColor: colors.border,
   },
   gridItem: { alignItems: 'center' },
-  gridLabel: { fontSize: 11, color: '#6B7280' },
-  gridVal: { fontSize: 13, fontWeight: '700', color: '#F9FAFB', marginTop: 2 },
+  gridLabel: { fontSize: 11, color: colors.textDim },
+  gridVal: { fontSize: 13, fontWeight: '700', color: colors.text, marginTop: 2 },
   categoryRow: {
     marginTop: 14,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#1E293B',
+    borderTopColor: colors.border,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  categoryLabel: { fontSize: 11, fontWeight: '700', color: '#64748B' },
+  categoryLabel: { fontSize: 11, fontWeight: '700', color: colors.textSubtle },
   categoryChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, flex: 1 },
   catChip: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: '#070A10',
+    backgroundColor: colors.bg,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
   },
   catChipSelected: {
-    borderColor: '#00F0FF',
-    backgroundColor: 'rgba(0, 240, 255, 0.1)',
+    borderColor: colors.accent,
+    backgroundColor: colors.accentSoft,
   },
-  catChipText: { fontSize: 11, color: '#64748B', fontWeight: '700' },
-  catChipTextSelected: { color: '#00F0FF' },
+  catChipText: { fontSize: 11, color: colors.textSubtle, fontWeight: '700' },
+  catChipTextSelected: { color: colors.accent },
   shareBtn: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 14,
-    shadowColor: '#10B981',
+    shadowColor: colors.success,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
-  shareBtnText: { color: '#070A10', fontSize: 12, fontWeight: '900', letterSpacing: 0.5 },
+  shareBtnText: { color: colors.bg, fontSize: 12, fontWeight: '900', letterSpacing: 0.5 },
   sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'baseline',
     marginBottom: 10,
   },
-  sectionTitle: { fontSize: 13, fontWeight: '800', color: '#00F0FF', letterSpacing: 1 },
-  sectionSubtitle: { fontSize: 11, color: '#6B7280' },
+  sectionTitle: { fontSize: 13, fontWeight: '800', color: colors.accent, letterSpacing: 1 },
+  sectionSubtitle: { fontSize: 11, color: colors.textDim },
   memberCard: {
-    backgroundColor: '#0E1422',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,
@@ -445,7 +443,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   memberCardPaid: {
-    borderColor: 'rgba(16, 185, 129, 0.4)',
+    borderColor: colors.successBorder,
     backgroundColor: 'rgba(16, 185, 129, 0.05)',
   },
   memberLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
@@ -454,30 +452,30 @@ const styles = StyleSheet.create({
     height: 26,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#334155',
-    backgroundColor: '#070A10',
+    borderColor: colors.line,
+    backgroundColor: colors.bg,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxActive: {
-    borderColor: '#10B981',
-    backgroundColor: '#10B981',
+    borderColor: colors.success,
+    backgroundColor: colors.success,
   },
-  checkmark: { color: '#0A0A0F', fontSize: 16, fontWeight: '900' },
-  memberName: { fontSize: 15, fontWeight: '800', color: '#F9FAFB' },
+  checkmark: { color: colors.ink, fontSize: 16, fontWeight: '900' },
+  memberName: { fontSize: 15, fontWeight: '800', color: colors.text },
   memberNamePaid: { color: '#E2E8F0' },
-  memberShareDetail: { fontSize: 11, color: '#6B7280', marginTop: 2 },
+  memberShareDetail: { fontSize: 11, color: colors.textDim, marginTop: 2 },
   memberRight: { alignItems: 'flex-end', marginLeft: 8 },
-  memberAmount: { fontSize: 15, fontWeight: '900', color: '#00F0FF' },
-  memberAmountPaid: { color: '#10B981' },
+  memberAmount: { fontSize: 15, fontWeight: '900', color: colors.accent },
+  memberAmountPaid: { color: colors.success },
   payStatusText: { fontSize: 10, fontWeight: '800', marginTop: 3, letterSpacing: 0.5 },
-  textPaid: { color: '#10B981' },
-  textPending: { color: '#F59E0B' },
+  textPaid: { color: colors.success },
+  textPending: { color: colors.warning },
   itemsCard: {
-    backgroundColor: '#0E1422',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     padding: 12,
   },
   itemRow: {
@@ -486,9 +484,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
   },
-  itemRowBorder: { borderBottomWidth: 1, borderBottomColor: '#1E293B' },
-  itemName: { fontSize: 13, fontWeight: '700', color: '#F9FAFB' },
-  itemAssigned: { fontSize: 11, color: '#00F0FF', marginTop: 2 },
-  itemUnassigned: { fontSize: 11, color: '#F59E0B', marginTop: 2 },
-  itemPrice: { fontSize: 13, fontWeight: '800', color: '#F9FAFB' },
+  itemRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.border },
+  itemName: { fontSize: 13, fontWeight: '700', color: colors.text },
+  itemAssigned: { fontSize: 11, color: colors.accent, marginTop: 2 },
+  itemUnassigned: { fontSize: 11, color: colors.warning, marginTop: 2 },
+  itemPrice: { fontSize: 13, fontWeight: '800', color: colors.text },
 });

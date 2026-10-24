@@ -5,23 +5,29 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBillStore } from '../store/billStore';
-import { BillHistory, RootStackParamList } from '../types';
+import { RootStackParamList } from '../types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as Clipboard from 'expo-clipboard';
 import * as FileSystem from 'expo-file-system/legacy';
+import { Image } from 'expo-image';
 import Share from 'react-native-share';
 import { CyberModal } from '../components/CyberModal';
+import { TopBar } from '../components/TopBar';
+import { colors } from '../theme';
+import { formatNumber } from '../utils/format';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ShareBill'>;
 
 export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
   const { bill } = route.params;
-  const { paymentMethods, loadPaymentMethods } = useBillStore();
-  const [selectedMethods, setSelectedMethods] = useState<string[]>([]);
+  const paymentMethods = useBillStore((s) => s.paymentMethods);
+  const loadPaymentMethods = useBillStore((s) => s.loadPaymentMethods);
+  // Semua metode terpilih secara default; state hanya mencatat yang di-skip
+  // user — menghindari efek sinkronisasi derived state dari store.
+  const [deselected, setDeselected] = useState<ReadonlySet<string>>(new Set());
 
   // Modal State
   const [modalVisible, setModalVisible] = useState(false);
@@ -40,16 +46,16 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
     });
   }, [loadPaymentMethods]);
 
-  useEffect(() => {
-    setSelectedMethods(paymentMethods.map((payment) => payment.id));
-  }, [paymentMethods]);
-
   const toggleMethod = (id: string) => {
-    if (selectedMethods.includes(id)) {
-      setSelectedMethods((prev) => prev.filter((m) => m !== id));
-    } else {
-      setSelectedMethods((prev) => [...prev, id]);
-    }
+    setDeselected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   };
 
   const buildShareText = () => {
@@ -61,28 +67,28 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
       hour: '2-digit',
       minute: '2-digit',
     })}\n`;
-    msg += `💰 Total Tagihan: Rp ${bill.grandTotal.toLocaleString('id-ID')}\n`;
-    if (bill.tax > 0) msg += `• Pajak: Rp ${bill.tax.toLocaleString('id-ID')}\n`;
-    if (bill.service > 0) msg += `• Biaya Layanan: Rp ${bill.service.toLocaleString('id-ID')}\n`;
-    if (bill.discount > 0) msg += `• Diskon / Promo: -Rp ${bill.discount.toLocaleString('id-ID')}\n`;
+    msg += `💰 Total Tagihan: Rp ${formatNumber(bill.grandTotal)}\n`;
+    if (bill.tax > 0) msg += `• Pajak: Rp ${formatNumber(bill.tax)}\n`;
+    if (bill.service > 0) msg += `• Biaya Layanan: Rp ${formatNumber(bill.service)}\n`;
+    if (bill.discount > 0) msg += `• Diskon / Promo: -Rp ${formatNumber(bill.discount)}\n`;
     msg += `--------------------------------\n\n`;
 
     msg += `*RINCIAN TIAP ORANG:*\n`;
     bill.results.forEach((res, i) => {
       const isPaid = bill.paidMemberIds?.includes(res.memberId);
       const status = isPaid ? ' [LUNAS ✅]' : '';
-      msg += `${i + 1}. *${res.name}*: Rp ${res.totalBayar.toLocaleString('id-ID')}${status}\n`;
-      msg += `   (Menu: Rp ${res.subtotal.toLocaleString('id-ID')}`;
+      msg += `${i + 1}. *${res.name}*: Rp ${formatNumber(res.totalBayar)}${status}\n`;
+      msg += `   (Menu: Rp ${formatNumber(res.subtotal)}`;
       if (res.taxShare + res.serviceShare > 0) {
-        msg += ` + Pajak/Svc: Rp ${(res.taxShare + res.serviceShare).toLocaleString('id-ID')}`;
+        msg += ` + Pajak/Svc: Rp ${formatNumber((res.taxShare + res.serviceShare))}`;
       }
       if (res.discountShare > 0) {
-        msg += ` - Disc: Rp ${res.discountShare.toLocaleString('id-ID')}`;
+        msg += ` - Disc: Rp ${formatNumber(res.discountShare)}`;
       }
       msg += `)\n`;
     });
 
-    const activePayments = paymentMethods.filter((p) => selectedMethods.includes(p.id));
+    const activePayments = paymentMethods.filter((p) => !deselected.has(p.id));
     if (activePayments.length > 0) {
       msg += `\n--------------------------------\n`;
       msg += `*METODE PEMBAYARAN:*\n`;
@@ -142,18 +148,16 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const qrisMethods = paymentMethods.filter(
-    (p) => p.type === 'qris' && p.qrisImageUri && selectedMethods.includes(p.id)
+    (p) => p.type === 'qris' && p.qrisImageUri && !deselected.has(p.id)
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Kembali</Text>
-        </TouchableOpacity>
-        <Text style={styles.screenTitle}>Bagikan Tagihan</Text>
-        <View style={{ width: 60 }} />
-      </View>
+      <TopBar
+        title="Bagikan Tagihan"
+        onBack={() => navigation.goBack()}
+        right={<View style={{ width: 60 }} />}
+      />
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Pilih Metode Pembayaran yang Disertakan */}
@@ -179,7 +183,7 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
             </TouchableOpacity>
           ) : (
             paymentMethods.map((pm) => {
-              const isChecked = selectedMethods.includes(pm.id);
+              const isChecked = !deselected.has(pm.id);
               return (
                 <TouchableOpacity
                   key={pm.id}
@@ -214,7 +218,12 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
             <View style={styles.qrisGallery}>
               {qrisMethods.map((qm) => (
                 <View key={qm.id} style={styles.qrisBox}>
-                  <Image source={{ uri: qm.qrisImageUri }} style={styles.qrisImage} />
+                  <Image
+                    source={{ uri: qm.qrisImageUri }}
+                    style={styles.qrisImage}
+                    contentFit="cover"
+                    transition={200}
+                  />
                   <Text style={styles.qrisLabel}>{qm.name}</Text>
                 </View>
               ))}
@@ -252,7 +261,7 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#070A10' },
+  container: { flex: 1, backgroundColor: colors.bg },
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -260,25 +269,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
-    backgroundColor: '#0E1422',
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
   },
   backButton: { padding: 4 },
-  backButtonText: { color: '#00F0FF', fontSize: 14, fontWeight: '700', letterSpacing: 0.5 },
-  screenTitle: { fontSize: 16, fontWeight: '800', color: '#F9FAFB', letterSpacing: 0.8 },
+  backButtonText: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 0.5 },
+  screenTitle: { fontSize: 16, fontWeight: '800', color: colors.text, letterSpacing: 0.8 },
   scroll: { padding: 16, paddingBottom: 40 },
   card: {
-    backgroundColor: '#0E1422',
+    backgroundColor: colors.surface,
     padding: 16,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     marginBottom: 16,
   },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sectionHeader: { fontSize: 14, fontWeight: '800', color: '#00F0FF', letterSpacing: 0.8, marginBottom: 4 },
-  linkText: { color: '#38BDF8', fontSize: 12, fontWeight: '700' },
-  subHint: { fontSize: 11, color: '#64748B', lineHeight: 16, marginBottom: 12 },
+  sectionHeader: { fontSize: 14, fontWeight: '800', color: colors.accent, letterSpacing: 0.8, marginBottom: 4 },
+  linkText: { color: colors.info, fontSize: 12, fontWeight: '700' },
+  subHint: { fontSize: 11, color: colors.textSubtle, lineHeight: 16, marginBottom: 12 },
   noPaymentNotice: {
     padding: 12,
     backgroundColor: 'rgba(234, 179, 8, 0.1)',
@@ -291,14 +300,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    backgroundColor: '#070A10',
+    backgroundColor: colors.bg,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     marginBottom: 8,
   },
   paymentSelectRowActive: {
-    borderColor: '#00F0FF',
+    borderColor: colors.accent,
     backgroundColor: 'rgba(0, 240, 255, 0.05)',
   },
   checkbox: {
@@ -306,53 +315,53 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 4,
     borderWidth: 1.5,
-    borderColor: '#64748B',
+    borderColor: colors.textSubtle,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxActive: {
-    backgroundColor: '#00F0FF',
-    borderColor: '#00F0FF',
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
   },
   checkMark: {
-    color: '#070A10',
+    color: colors.bg,
     fontSize: 12,
     fontWeight: '900',
   },
-  paymentName: { color: '#F9FAFB', fontSize: 13, fontWeight: '700' },
-  paymentDetail: { color: '#64748B', fontSize: 11, marginTop: 2 },
+  paymentName: { color: colors.text, fontSize: 13, fontWeight: '700' },
+  paymentDetail: { color: colors.textSubtle, fontSize: 11, marginTop: 2 },
   qrisGallery: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 8 },
   qrisBox: { alignItems: 'center' },
-  qrisImage: { width: 140, height: 140, borderRadius: 8, borderWidth: 1, borderColor: '#00F0FF', backgroundColor: '#FFF' },
-  qrisLabel: { color: '#94A3B8', fontSize: 11, fontWeight: '600', marginTop: 4 },
+  qrisImage: { width: 140, height: 140, borderRadius: 8, borderWidth: 1, borderColor: colors.accent, backgroundColor: '#FFF' },
+  qrisLabel: { color: colors.textMuted, fontSize: 11, fontWeight: '600', marginTop: 4 },
   textPreviewBox: {
-    backgroundColor: '#070A10',
+    backgroundColor: colors.bg,
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
   },
   previewTextContent: { color: '#CBD5E1', fontSize: 11, lineHeight: 17, fontFamily: 'monospace' },
   shareBtnPrimary: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 10,
-    shadowColor: '#10B981',
+    shadowColor: colors.success,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 10,
     elevation: 5,
   },
-  shareBtnText: { color: '#070A10', fontSize: 14, fontWeight: '800', letterSpacing: 0.5 },
+  shareBtnText: { color: colors.bg, fontSize: 14, fontWeight: '800', letterSpacing: 0.5 },
   copyBtnSecondary: {
-    backgroundColor: '#0E1422',
+    backgroundColor: colors.surface,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#00F0FF',
+    borderColor: colors.accent,
   },
-  copyBtnText: { color: '#00F0FF', fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  copyBtnText: { color: colors.accent, fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
 });

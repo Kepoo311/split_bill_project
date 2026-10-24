@@ -1,27 +1,73 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   FlatList,
   TextInput,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   ActivityIndicator,
-  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { parseReceiptText, detectReceiptExtras } from '../utils/ocrParser';
 import { processReceiptOCR } from '../utils/ocrProcessor';
 import { generateId } from '../utils/ids';
+import { Image } from 'expo-image';
 import type { TextRecognitionResult } from '@react-native-ml-kit/text-recognition';
 import { BillItem, RootStackParamList } from '../types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as Clipboard from 'expo-clipboard';
+import * as MlKitModule from '@react-native-ml-kit/text-recognition';
 import { useBillStore } from '../store/billStore';
 import { useCyberAlert } from '../hooks/useCyberAlert';
+import { TopBar } from '../components/TopBar';
+import { colors } from '../theme';
+import { formatNumber } from '../utils/format';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Ocr'>;
+
+interface OcrItemRowProps {
+  item: BillItem;
+  onUpdate: (id: string, field: 'nama_item' | 'harga', value: string) => void;
+  onDelete: (id: string) => void;
+}
+
+function OcrItemRow({ item, onUpdate, onDelete }: OcrItemRowProps) {
+  return (
+    <View style={styles.itemRow}>
+      <TextInput
+        style={styles.nameInput}
+        value={item.nama_item}
+        onChangeText={(val) => onUpdate(item.id, 'nama_item', val)}
+        placeholder="Nama Menu"
+        placeholderTextColor={colors.textDim}
+      />
+      <View style={styles.priceContainer}>
+        <Text style={styles.currencyPrefix}>Rp</Text>
+        <TextInput
+          style={styles.priceInput}
+          value={item.harga > 0 ? item.harga.toString() : ''}
+          onChangeText={(val) => onUpdate(item.id, 'harga', val)}
+          keyboardType="numeric"
+          placeholder="0"
+          placeholderTextColor={colors.textDim}
+        />
+      </View>
+      <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={() => onDelete(item.id)}
+        accessibilityLabel={`Hapus item ${item.nama_item}`}
+        hitSlop={6}
+      >
+        <Text style={styles.deleteButtonText}>✕</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// Row memoized: mengedit satu item tidak me-render ulang seluruh daftar.
+const OcrItemRowMemo = React.memo(OcrItemRow);
 
 export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
   const { imageUri } = route.params;
@@ -33,23 +79,23 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
   const [detectedTaxMode, setDetectedTaxMode] = useState<'nominal' | 'percent'>('nominal');
   const [detectedService, setDetectedService] = useState<string>('');
   const [detectedDiscount, setDetectedDiscount] = useState<string>('');
-  const { saveLearningData, loadLearningData } = useBillStore();
+  const saveLearningData = useBillStore((s) => s.saveLearningData);
+  const loadLearningData = useBillStore((s) => s.loadLearningData);
   const { showCyberAlert, cyberAlertModal } = useCyberAlert();
 
-  useEffect(() => {
-    runOcr();
-  }, [imageUri]);
-
-  const runOcr = async () => {
+  // Dideklarasikan sebelum effect yang memanggilnya (hoisting eksplisit via
+  // useCallback); identitas hanya berubah saat foto berganti.
+  const runOcr = useCallback(async () => {
     setLoading(true);
     try {
       let recognizedText = '';
       let recognitionError: string | null = null;
       let ocrResult: TextRecognitionResult | null = null;
 
-      // Coba native ML Kit dengan semua rotasi untuk menangani posisi bill tidak pas
+      // Coba native ML Kit; bila modul native tak tersedia (mis. Expo Go),
+      // binding-nya undefined dan dilewati tanpa crash.
       try {
-        const MlkitTextRecognition = require('@react-native-ml-kit/text-recognition').default;
+        const MlkitTextRecognition = MlKitModule.default;
         if (MlkitTextRecognition && MlkitTextRecognition.recognize) {
           // Coba deteksi langsung
           const result = await MlkitTextRecognition.recognize(imageUri);
@@ -118,7 +164,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
       } else {
         setItems(parsed);
       }
-    } catch (e: any) {
+    } catch {
       showCyberAlert('Info', 'Silakan masukkan item menu secara manual.');
       setItems([
         {
@@ -131,26 +177,41 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [imageUri, loadLearningData, showCyberAlert]);
 
-  const handleUpdateItem = (id: string, field: 'nama_item' | 'harga', value: string) => {
-    setItemsModified(true);
-    setItems((prev) =>
-      prev.map((item) => {
-        if (item.id !== id) return item;
-        if (field === 'harga') {
-          const num = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
-          return { ...item, harga: num };
-        }
-        return { ...item, nama_item: value };
-      })
-    );
-  };
+  useEffect(() => {
+    let active = true;
+    // setState pertama dijalankan sebagai microtask, bukan sinkron di body
+    // effect, agar tidak memicu render berantai (react-hooks/set-state-in-effect).
+    Promise.resolve().then(() => {
+      if (active) runOcr();
+    });
+    return () => {
+      active = false;
+    };
+  }, [runOcr]);
 
-  const handleDeleteItem = (id: string) => {
+  const handleUpdateItem = useCallback(
+    (id: string, field: 'nama_item' | 'harga', value: string) => {
+      setItemsModified(true);
+      setItems((prev) =>
+        prev.map((item) => {
+          if (item.id !== id) return item;
+          if (field === 'harga') {
+            const num = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
+            return { ...item, harga: num };
+          }
+          return { ...item, nama_item: value };
+        })
+      );
+    },
+    []
+  );
+
+  const handleDeleteItem = useCallback((id: string) => {
     setItemsModified(true);
     setItems((prev) => prev.filter((it) => it.id !== id));
-  };
+  }, []);
 
   const handleAddItem = () => {
     setItemsModified(true);
@@ -202,23 +263,33 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Foto Ulang</Text>
-        </TouchableOpacity>
-        <Text style={styles.screenTitle}>Daftar Menu</Text>
-        <View style={{ flexDirection: 'row', gap: 6 }}>
-          <TouchableOpacity onPress={handleShowRawText} style={[styles.addButton, { backgroundColor: '#8E8E93' }]}>
-            <Text style={styles.addButtonText}>Teks</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleAddItem} style={styles.addButton}>
-            <Text style={styles.addButtonText}>+ Item</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <TopBar
+        title="Daftar Menu"
+        onBack={() => navigation.goBack()}
+        backLabel="← Foto Ulang"
+        right={
+          <View style={{ flexDirection: 'row', gap: 6 }}>
+            <TouchableOpacity
+              onPress={handleShowRawText}
+              style={[styles.addButton, { backgroundColor: 'rgba(148, 148, 147, 0.2)' }]}
+            >
+              <Text style={styles.addButtonText}>Teks</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleAddItem} style={styles.addButton}>
+              <Text style={styles.addButtonText}>+ Item</Text>
+            </TouchableOpacity>
+          </View>
+        }
+      />
 
       <View style={styles.previewContainer}>
-        <Image source={{ uri: imageUri }} style={styles.imageThumbnail} />
+        <Image
+          source={{ uri: imageUri }}
+          style={styles.imageThumbnail}
+          contentFit="cover"
+          transition={200}
+          placeholder={colors.surface}
+        />
         <View style={styles.previewTextWrapper}>
           <Text style={styles.statusLabel}>
             {`${items.length} item siap dibagikan`}
@@ -234,7 +305,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
             {detectedTax ? (
               <View style={styles.detectedBadge}>
                 <Text style={styles.detectedBadgeText}>
-                  Pajak: {detectedTaxMode === 'nominal' ? `Rp ${parseInt(detectedTax, 10).toLocaleString('id-ID')}` : `${detectedTax}%`}
+                  Pajak: {detectedTaxMode === 'nominal' ? `Rp ${formatNumber(parseInt(detectedTax, 10))}` : `${detectedTax}%`}
                 </Text>
               </View>
             ) : null}
@@ -258,47 +329,33 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.loadingText}>Memproses OCR Offline...</Text>
         </View>
       ) : (
-        <FlatList
+          <FlatList
           data={items}
           keyExtractor={(it) => it.id}
           contentContainerStyle={styles.listContainer}
           renderItem={({ item }) => (
-            <View style={styles.itemRow}>
-              <TextInput
-                style={styles.nameInput}
-                value={item.nama_item}
-                onChangeText={(val) => handleUpdateItem(item.id, 'nama_item', val)}
-                placeholder="Nama Menu"
-              />
-              <View style={styles.priceContainer}>
-                <Text style={styles.currencyPrefix}>Rp</Text>
-                <TextInput
-                  style={styles.priceInput}
-                  value={item.harga > 0 ? item.harga.toString() : ''}
-                  onChangeText={(val) => handleUpdateItem(item.id, 'harga', val)}
-                  keyboardType="numeric"
-                  placeholder="0"
-                />
-              </View>
-              <TouchableOpacity
-                onPress={() => handleDeleteItem(item.id)}
-                style={styles.deleteButton}
-              >
-                <Text style={styles.deleteButtonText}>✕</Text>
-              </TouchableOpacity>
-            </View>
+            <OcrItemRowMemo
+              item={item}
+              onUpdate={handleUpdateItem}
+              onDelete={handleDeleteItem}
+            />
           )}
         />
       )}
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.confirmButton, (loading || items.length === 0) && styles.disabledButton]}
+        <Pressable
+          style={({ pressed }) => [
+            styles.confirmButton,
+            (loading || items.length === 0) && styles.disabledButton,
+            pressed && !(loading || items.length === 0) && styles.buttonPressed,
+          ]}
           onPress={handleProceed}
           disabled={loading || items.length === 0}
+          accessibilityRole="button"
         >
           <Text style={styles.confirmButtonText}>Lanjut ke Bagi Tagihan →</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
       {cyberAlertModal}
     </SafeAreaView>
@@ -306,7 +363,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#070A10' },
+  container: { flex: 1, backgroundColor: colors.bg },
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -314,66 +371,66 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
-    backgroundColor: '#0E1422',
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
   },
   backButton: { padding: 4 },
-  backButtonText: { color: '#00F0FF', fontSize: 14, fontWeight: '700', letterSpacing: 0.5 },
-  screenTitle: { fontSize: 16, fontWeight: '800', color: '#F9FAFB', letterSpacing: 1 },
+  backButtonText: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 0.5 },
+  screenTitle: { fontSize: 16, fontWeight: '800', color: colors.text, letterSpacing: 1 },
   addButton: { 
     paddingVertical: 4, 
     paddingHorizontal: 8, 
-    backgroundColor: 'rgba(0, 240, 255, 0.15)', 
+    backgroundColor: colors.accentSoft, 
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#00F0FF',
+    borderColor: colors.accent,
   },
-  addButtonText: { color: '#00F0FF', fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
+  addButtonText: { color: colors.accent, fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
   previewContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    backgroundColor: '#0E1422',
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: colors.border,
   },
   imageThumbnail: { 
     width: 50, 
     height: 65, 
     borderRadius: 8, 
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.border,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.line,
   },
   previewTextWrapper: { marginLeft: 12, flex: 1 },
-  statusLabel: { fontSize: 13, fontWeight: '700', color: '#F9FAFB', letterSpacing: 0.5 },
-  hintLabel: { fontSize: 11, color: '#6B7280', marginTop: 2 },
-  loadingWrapper: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#070A10' },
-  loadingText: { marginTop: 12, color: '#6B7280', fontSize: 13, letterSpacing: 0.5 },
+  statusLabel: { fontSize: 13, fontWeight: '700', color: colors.text, letterSpacing: 0.5 },
+  hintLabel: { fontSize: 11, color: colors.textDim, marginTop: 2 },
+  loadingWrapper: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg },
+  loadingText: { marginTop: 12, color: colors.textDim, fontSize: 13, letterSpacing: 0.5 },
   listContainer: { padding: 16, paddingBottom: 30 },
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0E1422',
+    backgroundColor: colors.surface,
     padding: 12,
     borderRadius: 12,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
   },
   nameInput: { 
     flex: 1, 
     fontSize: 14, 
-    color: '#F9FAFB', 
+    color: colors.text, 
     padding: 4,
     fontWeight: '500',
   },
   priceContainer: { flexDirection: 'row', alignItems: 'center', marginLeft: 8 },
-  currencyPrefix: { fontSize: 13, color: '#6B7280', marginRight: 2, fontWeight: '600' },
+  currencyPrefix: { fontSize: 13, color: colors.textDim, marginRight: 2, fontWeight: '600' },
   priceInput: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#00F0FF',
+    color: colors.accent,
     minWidth: 70,
     textAlign: 'right',
     padding: 4,
@@ -384,27 +441,23 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     borderRadius: 6,
   },
-  deleteButtonText: { color: '#EF4444', fontSize: 15, fontWeight: '800' },
+  deleteButtonText: { color: colors.danger, fontSize: 15, fontWeight: '800' },
   footer: { 
     padding: 16, 
-    backgroundColor: '#0E1422', 
+    backgroundColor: colors.surface, 
     borderTopWidth: 1, 
-    borderTopColor: '#1E293B',
+    borderTopColor: colors.border,
   },
-  confirmButton: { 
-    backgroundColor: '#00F0FF', 
-    padding: 16, 
-    borderRadius: 12, 
+  confirmButton: {
+    backgroundColor: colors.accent,
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#00F0FF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 6,
   },
+  buttonPressed: { opacity: 0.75, transform: [{ scale: 0.99 }] },
   disabledButton: { backgroundColor: '#1E3A47', shadowOpacity: 0 },
   confirmButtonText: { 
-    color: '#0A0A0F', 
+    color: colors.ink, 
     fontSize: 15, 
     fontWeight: '800',
     letterSpacing: 1,
@@ -414,10 +467,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: '#0F172A',
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: colors.border,
   },
   detectedExtrasTitle: {
-    color: '#38BDF8',
+    color: colors.info,
     fontSize: 12,
     fontWeight: '700',
     marginBottom: 6,
@@ -429,9 +482,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   detectedBadge: {
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    backgroundColor: colors.infoSoft,
     borderWidth: 1,
-    borderColor: '#38BDF8',
+    borderColor: colors.info,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,

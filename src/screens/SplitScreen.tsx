@@ -13,6 +13,8 @@ import { calculateSplit } from '../utils/calculateSplit';
 import { generateId } from '../utils/ids';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCyberAlert } from '../hooks/useCyberAlert';
+import { colors } from '../theme';
+import { formatRupiah } from '../utils/format';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Split'>;
 
@@ -193,12 +195,12 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
                   <Text style={styles.itemName}>{item.nama_item}</Text>
                   {shareCount > 1 && (
                     <Text style={styles.splitIndicator}>
-                      Dibagi {shareCount} orang: @Rp {sharePrice.toLocaleString('id-ID')}
+                      Dibagi {shareCount} orang: @{formatRupiah(sharePrice)}
                     </Text>
                   )}
                 </View>
                 <Text style={styles.itemPrice}>
-                  Rp {item.harga.toLocaleString('id-ID')}
+                  {formatRupiah(item.harga)}
                 </Text>
               </View>
 
@@ -314,7 +316,7 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#070A10' },
+  container: { flex: 1, backgroundColor: colors.bg },
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -322,103 +324,103 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
-    backgroundColor: '#0E1422',
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
   },
   backButton: { padding: 4 },
-  backButtonText: { color: '#00F0FF', fontSize: 14, fontWeight: '700', letterSpacing: 0.5 },
-  screenTitle: { fontSize: 16, fontWeight: '800', color: '#F9FAFB', letterSpacing: 1 },
+  backButtonText: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 0.5 },
+  screenTitle: { fontSize: 16, fontWeight: '800', color: colors.text, letterSpacing: 1 },
   scroll: { padding: 16 },
   card: { 
-    backgroundColor: '#0E1422', 
+    backgroundColor: colors.surface, 
     padding: 16, 
     borderRadius: 12, 
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
   },
-  sectionHeader: { fontSize: 14, fontWeight: '800', color: '#00F0FF', marginBottom: 12, letterSpacing: 0.5 },
-  sectionHeaderTitle: { fontSize: 15, fontWeight: '800', color: '#F9FAFB', marginTop: 8, letterSpacing: 0.5 },
-  sectionSubhint: { fontSize: 11, color: '#6B7280', marginBottom: 12, marginTop: 2 },
+  sectionHeader: { fontSize: 14, fontWeight: '800', color: colors.accent, marginBottom: 12, letterSpacing: 0.5 },
+  sectionHeaderTitle: { fontSize: 15, fontWeight: '800', color: colors.text, marginTop: 8, letterSpacing: 0.5 },
+  sectionSubhint: { fontSize: 11, color: colors.textDim, marginBottom: 12, marginTop: 2 },
   row: { flexDirection: 'row', alignItems: 'center' },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   input: {
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 9,
     fontSize: 14,
-    backgroundColor: '#070A10',
-    color: '#F9FAFB',
+    backgroundColor: colors.bg,
+    color: colors.text,
   },
   buttonAdd: {
-    backgroundColor: '#00F0FF',
+    backgroundColor: colors.accent,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
     marginLeft: 8,
-    shadowColor: '#00F0FF',
+    shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 3,
   },
-  buttonAddText: { color: '#0A0A0F', fontWeight: '800', letterSpacing: 0.5 },
+  buttonAddText: { color: colors.ink, fontWeight: '800', letterSpacing: 0.5 },
   chipWrapper: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
   chipMember: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 240, 255, 0.1)',
+    backgroundColor: colors.accentSoft,
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.3)',
+    borderColor: colors.accentBorder,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
   },
-  chipMemberText: { fontSize: 13, fontWeight: '700', color: '#00F0FF', marginRight: 6 },
-  chipRemove: { color: '#EF4444', fontSize: 12, fontWeight: '800' },
+  chipMemberText: { fontSize: 13, fontWeight: '700', color: colors.accent, marginRight: 6 },
+  chipRemove: { color: colors.danger, fontSize: 12, fontWeight: '800' },
   itemCard: { 
-    backgroundColor: '#0E1422', 
+    backgroundColor: colors.surface, 
     padding: 14, 
     borderRadius: 12, 
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
   },
-  itemName: { fontSize: 14, fontWeight: '700', color: '#F9FAFB' },
-  splitIndicator: { fontSize: 11, color: '#F59E0B', marginTop: 2, fontWeight: '600' },
-  itemPrice: { fontSize: 14, fontWeight: '800', color: '#00F0FF' },
+  itemName: { fontSize: 14, fontWeight: '700', color: colors.text },
+  splitIndicator: { fontSize: 11, color: colors.warning, marginTop: 2, fontWeight: '600' },
+  itemPrice: { fontSize: 14, fontWeight: '800', color: colors.accent },
   chipSelectable: {
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: '#070A10',
+    backgroundColor: colors.bg,
   },
   chipActive: { 
-    backgroundColor: '#00F0FF', 
-    borderColor: '#00F0FF',
-    shadowColor: '#00F0FF',
+    backgroundColor: colors.accent, 
+    borderColor: colors.accent,
+    shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.4,
     shadowRadius: 6,
     elevation: 3,
   },
-  chipTextSelectable: { fontSize: 12, color: '#9CA3AF', fontWeight: '600' },
-  chipTextActive: { color: '#0A0A0F', fontWeight: '800' },
-  labelTitle: { fontSize: 13, fontWeight: '700', color: '#F9FAFB' },
-  labelSub: { fontSize: 11, color: '#6B7280', marginTop: 2 },
+  chipTextSelectable: { fontSize: 12, color: colors.textFaint, fontWeight: '600' },
+  chipTextActive: { color: colors.ink, fontWeight: '800' },
+  labelTitle: { fontSize: 13, fontWeight: '700', color: colors.text },
+  labelSub: { fontSize: 11, color: colors.textDim, marginTop: 2 },
   percentInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    backgroundColor: '#070A10',
+    backgroundColor: colors.bg,
   },
   numericInput: { 
     fontSize: 14, 
@@ -426,29 +428,29 @@ const styles = StyleSheet.create({
     minWidth: 60, 
     textAlign: 'right', 
     padding: 0,
-    color: '#00F0FF',
+    color: colors.accent,
   },
-  inputUnit: { fontSize: 13, color: '#6B7280', marginHorizontal: 4, fontWeight: '600' },
+  inputUnit: { fontSize: 13, color: colors.textDim, marginHorizontal: 4, fontWeight: '600' },
   buttonPrimary: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success,
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 8,
     marginBottom: 40,
-    shadowColor: '#10B981',
+    shadowColor: colors.success,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 5,
   },
-  buttonPrimaryText: { color: '#0A0A0F', fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
+  buttonPrimaryText: { color: colors.ink, fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
   taxModeToggle: {
     flexDirection: 'row',
-    backgroundColor: '#070A10',
+    backgroundColor: colors.bg,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     marginTop: 6,
     padding: 2,
     gap: 4,
@@ -464,9 +466,9 @@ const styles = StyleSheet.create({
   taxModeBtnText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#64748B',
+    color: colors.textSubtle,
   },
   taxModeBtnTextActive: {
-    color: '#00F0FF',
+    color: colors.accent,
   },
 });

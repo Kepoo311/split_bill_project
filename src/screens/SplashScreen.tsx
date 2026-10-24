@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   Animated,
   Easing,
@@ -10,8 +9,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ExpoSplashScreen from 'expo-splash-screen';
+import { Image } from 'expo-image';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
+import { colors } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
@@ -57,11 +58,11 @@ export const SplashScreen: React.FC<Props> = ({ navigation }) => {
       setTimeout(async () => {
         try {
           await ExpoSplashScreen.hideAsync();
-        } catch (e) {}
+        } catch {}
         navigation.replace('Home');
       }, 2500);
     });
-  }, [navigation]);
+  }, [navigation, fadeAnim, scaleAnim, slideAnim, textOpacity]);
 
   const logoStyle = {
     opacity: fadeAnim,
@@ -86,7 +87,8 @@ export const SplashScreen: React.FC<Props> = ({ navigation }) => {
         <Image
           source={require('../../assets/LOGO.png')}
           style={styles.logo}
-          resizeMode="contain"
+          contentFit="contain"
+          transition={300}
         />
       </Animated.View>
 
@@ -117,7 +119,7 @@ export const SplashScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0F',
+    backgroundColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -173,7 +175,7 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#00D4FF',
+    color: colors.accent,
     letterSpacing: 3,
     marginTop: 4,
     textTransform: 'uppercase',
@@ -181,10 +183,10 @@ const styles = StyleSheet.create({
   divider: {
     width: 60,
     height: 2,
-    backgroundColor: '#00D4FF',
+    backgroundColor: colors.accent,
     marginVertical: 16,
     borderRadius: 1,
-    shadowColor: '#00D4FF',
+    shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 4,
@@ -212,7 +214,7 @@ const styles = StyleSheet.create({
   loadingProgress: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#00D4FF',
+    backgroundColor: colors.accent,
     borderRadius: 2,
     transformOrigin: 'left',
   },

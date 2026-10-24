@@ -45,7 +45,7 @@ export const AppNavigator = () => {
       <ChangelogModal
         visible={!!showChangelog}
         entry={showChangelog}
-        onClose={() => setShowChangelog(null)}
+        onClose={setShowChangelog}
       />
     </View>
   );

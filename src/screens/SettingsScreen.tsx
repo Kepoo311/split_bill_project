@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Image,
   Switch,
   ActivityIndicator,
 } from 'react-native';
@@ -14,17 +13,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Updates from 'expo-updates';
+import { Image } from 'expo-image';
 import { useBillStore } from '../store/billStore';
 import { useUpdateStore, type UpdateResult } from '../store/updateStore';
 import { CHANGELOG } from '../constants/changelog';
 import { PaymentMethod, RootStackParamList } from '../types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CyberModal } from '../components/CyberModal';
+import { TopBar } from '../components/TopBar';
+import { colors } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
-  const { paymentMethods, loadPaymentMethods, savePaymentMethod, deletePaymentMethod } = useBillStore();
+  const paymentMethods = useBillStore((s) => s.paymentMethods);
+  const loadPaymentMethods = useBillStore((s) => s.loadPaymentMethods);
+  const savePaymentMethod = useBillStore((s) => s.savePaymentMethod);
+  const deletePaymentMethod = useBillStore((s) => s.deletePaymentMethod);
   const [methodType, setMethodType] = useState<'bank' | 'ewallet' | 'qris'>('bank');
   const [name, setName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
@@ -153,13 +158,11 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Kembali</Text>
-        </TouchableOpacity>
-        <Text style={styles.screenTitle}>Metode Pembayaran & QRIS</Text>
-        <View style={{ width: 60 }} />
-      </View>
+      <TopBar
+        title="Pengaturan"
+        onBack={() => navigation.goBack()}
+        right={<View style={{ width: 60 }} />}
+      />
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Form Tambah Pembayaran */}
@@ -221,7 +224,12 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
               <Text style={styles.fieldLabel}>Gambar QRIS Statis</Text>
               {qrisImageUri ? (
                 <View style={styles.qrisPreviewWrap}>
-                  <Image source={{ uri: qrisImageUri }} style={styles.qrisImagePreview} />
+                  <Image
+                    source={{ uri: qrisImageUri }}
+                    style={styles.qrisImagePreview}
+                    contentFit="cover"
+                    transition={200}
+                  />
                   <TouchableOpacity style={styles.qrisChangeBtn} onPress={handlePickQrisImage}>
                     <Text style={styles.qrisChangeText}>Ganti Foto QRIS</Text>
                   </TouchableOpacity>
@@ -263,7 +271,12 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                   <Text style={styles.paymentHolder}>a.n {pm.accountName}</Text>
                 )}
                 {pm.type === 'qris' && pm.qrisImageUri && (
-                  <Image source={{ uri: pm.qrisImageUri }} style={styles.qrisThumbSmall} />
+                  <Image
+                    source={{ uri: pm.qrisImageUri }}
+                    style={styles.qrisThumbSmall}
+                    contentFit="cover"
+                    transition={200}
+                  />
                 )}
               </View>
 
@@ -291,7 +304,7 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             <Switch
               value={autoUpdate}
               onValueChange={handleToggleAutoUpdate}
-              trackColor={{ true: '#38BDF8', false: '#1E293B' }}
+              trackColor={{ true: colors.info, false: colors.border }}
               thumbColor="#F9FAFB"
             />
           </View>
@@ -341,7 +354,7 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#070A10' },
+  container: { flex: 1, backgroundColor: colors.bg },
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -349,23 +362,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
-    backgroundColor: '#0E1422',
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
   },
   backButton: { padding: 4 },
-  backButtonText: { color: '#00F0FF', fontSize: 14, fontWeight: '700', letterSpacing: 0.5 },
-  screenTitle: { fontSize: 16, fontWeight: '800', color: '#F9FAFB', letterSpacing: 0.8 },
+  backButtonText: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 0.5 },
+  screenTitle: { fontSize: 16, fontWeight: '800', color: colors.text, letterSpacing: 0.8 },
   scroll: { padding: 16, paddingBottom: 40 },
   card: {
-    backgroundColor: '#0E1422',
+    backgroundColor: colors.surface,
     padding: 16,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     marginBottom: 20,
   },
-  sectionHeader: { fontSize: 14, fontWeight: '800', color: '#00F0FF', letterSpacing: 0.8, marginBottom: 4 },
-  subHint: { fontSize: 11, color: '#64748B', lineHeight: 16, marginBottom: 14 },
+  sectionHeader: { fontSize: 14, fontWeight: '800', color: colors.accent, letterSpacing: 0.8, marginBottom: 4 },
+  subHint: { fontSize: 11, color: colors.textSubtle, lineHeight: 16, marginBottom: 14 },
   typeSelector: {
     flexDirection: 'row',
     gap: 8,
@@ -374,33 +387,33 @@ const styles = StyleSheet.create({
   typeButton: {
     flex: 1,
     paddingVertical: 10,
-    backgroundColor: '#070A10',
+    backgroundColor: colors.bg,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     alignItems: 'center',
   },
   typeButtonActive: {
-    backgroundColor: 'rgba(0, 240, 255, 0.15)',
-    borderColor: '#00F0FF',
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.accent,
   },
-  typeText: { fontSize: 12, fontWeight: '700', color: '#64748B' },
-  typeTextActive: { color: '#00F0FF' },
-  fieldLabel: { fontSize: 11, fontWeight: '700', color: '#94A3B8', marginTop: 10, marginBottom: 6, textTransform: 'uppercase' },
+  typeText: { fontSize: 12, fontWeight: '700', color: colors.textSubtle },
+  typeTextActive: { color: colors.accent },
+  fieldLabel: { fontSize: 11, fontWeight: '700', color: colors.textMuted, marginTop: 10, marginBottom: 6, textTransform: 'uppercase' },
   input: {
-    backgroundColor: '#070A10',
+    backgroundColor: colors.bg,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 13,
-    color: '#F9FAFB',
+    color: colors.text,
   },
   qrisUploadWrap: { marginTop: 6 },
   uploadPlaceholder: {
     borderWidth: 1,
-    borderColor: '#00F0FF',
+    borderColor: colors.accent,
     borderStyle: 'dashed',
     borderRadius: 10,
     padding: 20,
@@ -408,87 +421,87 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 240, 255, 0.05)',
   },
   uploadIcon: { fontSize: 24, marginBottom: 6 },
-  uploadText: { fontSize: 12, color: '#00F0FF', fontWeight: '700' },
+  uploadText: { fontSize: 12, color: colors.accent, fontWeight: '700' },
   qrisPreviewWrap: { alignItems: 'center' },
-  qrisImagePreview: { width: 140, height: 140, borderRadius: 8, borderWidth: 1, borderColor: '#00F0FF', backgroundColor: '#FFF' },
+  qrisImagePreview: { width: 140, height: 140, borderRadius: 8, borderWidth: 1, borderColor: colors.accent, backgroundColor: '#FFF' },
   qrisChangeBtn: { marginTop: 8, paddingVertical: 4 },
-  qrisChangeText: { color: '#38BDF8', fontSize: 11, fontWeight: '700' },
+  qrisChangeText: { color: colors.info, fontSize: 11, fontWeight: '700' },
   btnSave: {
-    backgroundColor: '#00F0FF',
+    backgroundColor: colors.accent,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 18,
   },
-  btnSaveText: { color: '#070A10', fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
-  sectionTitle: { fontSize: 14, fontWeight: '800', color: '#F9FAFB', marginBottom: 10, letterSpacing: 0.5 },
+  btnSaveText: { color: colors.bg, fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  sectionTitle: { fontSize: 14, fontWeight: '800', color: colors.text, marginBottom: 10, letterSpacing: 0.5 },
   emptyBox: {
     padding: 20,
-    backgroundColor: '#0E1422',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     alignItems: 'center',
   },
-  emptyText: { color: '#64748B', fontSize: 12 },
+  emptyText: { color: colors.textSubtle, fontSize: 12 },
   paymentCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0E1422',
+    backgroundColor: colors.surface,
     padding: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     marginBottom: 10,
   },
   paymentCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   paymentBadge: {
-    backgroundColor: 'rgba(0, 240, 255, 0.1)',
-    color: '#00F0FF',
+    backgroundColor: colors.accentSoft,
+    color: colors.accent,
     fontSize: 9,
     fontWeight: '800',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.3)',
+    borderColor: colors.accentBorder,
   },
-  paymentName: { fontSize: 14, fontWeight: '800', color: '#F9FAFB' },
-  paymentAccount: { fontSize: 14, fontWeight: '700', color: '#38BDF8', letterSpacing: 0.5 },
-  paymentHolder: { fontSize: 11, color: '#94A3B8', marginTop: 2 },
-  qrisThumbSmall: { width: 60, height: 60, borderRadius: 6, marginTop: 6, borderWidth: 1, borderColor: '#334155' },
+  paymentName: { fontSize: 14, fontWeight: '800', color: colors.text },
+  paymentAccount: { fontSize: 14, fontWeight: '700', color: colors.info, letterSpacing: 0.5 },
+  paymentHolder: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
+  qrisThumbSmall: { width: 60, height: 60, borderRadius: 6, marginTop: 6, borderWidth: 1, borderColor: colors.line },
   deleteBtn: {
     paddingVertical: 6,
     paddingHorizontal: 10,
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: colors.dangerSoft,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#EF4444',
+    borderColor: colors.danger,
   },
-  deleteBtnText: { color: '#EF4444', fontSize: 11, fontWeight: '700' },
+  deleteBtnText: { color: colors.danger, fontSize: 11, fontWeight: '700' },
   updateRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   updateTextWrap: { flex: 1 },
-  updateLabel: { fontSize: 13, fontWeight: '800', color: '#F9FAFB', marginBottom: 4 },
+  updateLabel: { fontSize: 13, fontWeight: '800', color: colors.text, marginBottom: 4 },
   checkBtn: {
-    backgroundColor: '#38BDF8',
+    backgroundColor: colors.info,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 14,
   },
   checkBtnLoading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  checkBtnText: { color: '#070A10', fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  checkBtnText: { color: colors.bg, fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
   restartBtn: {
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    backgroundColor: colors.infoSoft,
     borderWidth: 1,
-    borderColor: '#38BDF8',
+    borderColor: colors.info,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 14,
   },
-  restartBtnText: { color: '#38BDF8', fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
-  updateStatus: { color: '#94A3B8', fontSize: 11, marginTop: 10, lineHeight: 16 },
+  restartBtnText: { color: colors.info, fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  updateStatus: { color: colors.textMuted, fontSize: 11, marginTop: 10, lineHeight: 16 },
   versionInfo: { color: '#475569', fontSize: 10, marginTop: 10, letterSpacing: 0.3 },
   btnDisabled: { opacity: 0.6 },
 });

@@ -1,5 +1,16 @@
 export const CHANGELOG = [
   {
+    version: '1.0.4',
+    date: '2026-10-24',
+    items: [
+      'Rebuild UI: tema terpusat (design tokens), header konsisten di semua halaman, tombol dengan efek tekan, kartu lebih bersih tanpa glow berlebihan',
+      'Performa: format rupiah & tanggal di-cache, langganan store per-field, daftar item memoized',
+      'Gambar kini memakai expo-image: cache bawaan + transisi halus',
+      'Error boundary: app tidak lagi mati diam-diam saat tampilan error',
+      'Ukuran aplikasi lebih ramping: modul share duplikat dihapus',
+    ],
+  },
+  {
     version: '1.0.3',
     date: '2026-10-24',
     items: [

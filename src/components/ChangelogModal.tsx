@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { ChangelogEntry } from '../constants/changelog';
+import { colors } from '../theme';
 
 interface ChangelogModalProps {
   visible: boolean;
@@ -79,11 +80,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#070A10',
+    color: colors.bg,
   },
   version: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textDim,
   },
   list: { maxHeight: 300 },
   listContent: { gap: 10 },

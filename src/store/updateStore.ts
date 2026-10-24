@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Updates from 'expo-updates';
+import { CHANGELOG, type ChangelogEntry } from '../constants/changelog';
 
 export type UpdateResult = 'uptodate' | 'ready' | 'error' | 'disabled';
 
 const AUTO_UPDATE_KEY = '@split_bill_auto_update_v1';
+const LAST_SEEN_VERSION_KEY = '@split_bill_last_seen_version';
 
 interface UpdateState {
   autoUpdate: boolean;
@@ -15,10 +17,13 @@ interface UpdateState {
   updateDownloaded: boolean;
   lastResult: UpdateResult | null;
   lastCheckedAt: number | null;
+  changelogEntry: ChangelogEntry | null;
   loadPrefs: () => Promise<void>;
   setAutoUpdate: (value: boolean) => Promise<void>;
   checkAndFetch: () => Promise<UpdateResult>;
   applyUpdate: () => Promise<boolean>;
+  checkChangelog: () => Promise<void>;
+  dismissChangelog: () => void;
 }
 
 export const useUpdateStore = create<UpdateState>((set, get) => ({
@@ -30,6 +35,22 @@ export const useUpdateStore = create<UpdateState>((set, get) => ({
   updateDownloaded: false,
   lastResult: null,
   lastCheckedAt: null,
+  changelogEntry: null,
+
+  checkChangelog: async () => {
+    try {
+      const lastSeen = await AsyncStorage.getItem(LAST_SEEN_VERSION_KEY);
+      const currentVersion = CHANGELOG[0].version;
+      if (lastSeen !== currentVersion) {
+        await AsyncStorage.setItem(LAST_SEEN_VERSION_KEY, currentVersion);
+        set({ changelogEntry: CHANGELOG[0] });
+      }
+    } catch {
+      // Gagal baca preferensi changelog — abaikan, cek lagi di launch berikutnya.
+    }
+  },
+
+  dismissChangelog: () => set({ changelogEntry: null }),
 
   loadPrefs: async () => {
     try {

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
 } from 'react-native';
+import { colors } from '../theme';
 
 export interface CyberModalButton {
   text: string;
@@ -102,12 +103,12 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: '#0E1422',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#1E293B',
-    shadowColor: '#00F0FF',
+    borderColor: colors.border,
+    shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -120,8 +121,8 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     height: 2,
-    backgroundColor: '#00F0FF',
-    shadowColor: '#00F0FF',
+    backgroundColor: colors.accent,
+    shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 6,
@@ -129,14 +130,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#00F0FF',
+    color: colors.accent,
     letterSpacing: 0.8,
     marginBottom: 8,
     textTransform: 'uppercase',
   },
   message: {
     fontSize: 13,
-    color: '#94A3B8',
+    color: colors.textMuted,
     lineHeight: 18,
     marginBottom: 16,
   },
@@ -155,17 +156,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonPrimary: {
-    backgroundColor: '#00F0FF',
+    backgroundColor: colors.accent,
   },
   buttonCancel: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.line,
   },
   buttonDestructive: {
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    backgroundColor: colors.dangerSoft,
     borderWidth: 1,
-    borderColor: '#EF4444',
+    borderColor: colors.danger,
   },
   buttonText: {
     fontSize: 13,
@@ -173,12 +174,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   buttonTextPrimary: {
-    color: '#070A10',
+    color: colors.bg,
   },
   buttonTextCancel: {
-    color: '#94A3B8',
+    color: colors.textMuted,
   },
   buttonTextDestructive: {
-    color: '#EF4444',
+    color: colors.danger,
   },
 });

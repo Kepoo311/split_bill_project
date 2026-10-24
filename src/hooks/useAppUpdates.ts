@@ -1,26 +1,19 @@
-import { useCallback, useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { CHANGELOG, type ChangelogEntry } from '../constants/changelog';
+import { useEffect } from 'react';
 import { useUpdateStore } from '../store/updateStore';
 
-const LAST_SEEN_VERSION_KEY = '@split_bill_last_seen_version';
 const UPDATE_CHECK_INTERVAL = 1000 * 60 * 60 * 4; // 4 jam
 
+/**
+ * Dipasang sekali di AppNavigator: cek changelog versi baru + jalankan siklus
+ * cek/unduh OTA (menghormati mode manual). Semua state hidup di updateStore
+ * sehingga Home banner dan Settings selalu sinkron.
+ */
 export function useAppUpdates() {
-  const [showChangelog, setShowChangelog] = useState<ChangelogEntry | null>(null);
-
-  // Cek versi changelog terakhir yang dilihat user
-  const checkNewVersion = useCallback(async () => {
-    const lastSeen = await AsyncStorage.getItem(LAST_SEEN_VERSION_KEY);
-    const currentVersion = CHANGELOG[0].version;
-    if (lastSeen !== currentVersion) {
-      await AsyncStorage.setItem(LAST_SEEN_VERSION_KEY, currentVersion);
-      setShowChangelog(CHANGELOG[0]);
-    }
-  }, []);
+  const showChangelog = useUpdateStore((s) => s.changelogEntry);
+  const dismissChangelog = useUpdateStore((s) => s.dismissChangelog);
 
   useEffect(() => {
-    checkNewVersion();
+    useUpdateStore.getState().checkChangelog();
     const { loadPrefs, checkAndFetch } = useUpdateStore.getState();
     loadPrefs().then(() => {
       if (useUpdateStore.getState().autoUpdate) checkAndFetch();
@@ -29,10 +22,10 @@ export function useAppUpdates() {
       if (useUpdateStore.getState().autoUpdate) checkAndFetch();
     }, UPDATE_CHECK_INTERVAL);
     return () => clearInterval(interval);
-  }, [checkNewVersion]);
+  }, []);
 
   return {
     showChangelog,
-    setShowChangelog,
+    setShowChangelog: dismissChangelog,
   };
 }

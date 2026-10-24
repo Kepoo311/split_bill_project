@@ -204,7 +204,7 @@ const parseRetailRows = (line: string): RetailRow[] => {
 
 const parseNumberedReceipt = (lines: string[]): BillItem[] => {
   const names: string[] = [];
-  const prices: Array<{ price: string; quantity: number }> = [];
+  const prices: { price: string; quantity: number }[] = [];
 
   for (const line of lines) {
     if (isFooter(line)) break;

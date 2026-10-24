@@ -14,6 +14,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BillHistory, RootStackParamList } from '../types';
 import { CyberModal } from '../components/CyberModal';
 import { UpdateBanner } from '../components/UpdateBanner';
+import { colors } from '../theme';
+import { formatRupiah, formatDateShortTime } from '../utils/format';
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -51,13 +53,7 @@ function HistoryCardBase({ item, onPress }: HistoryCardProps) {
         </View>
       </View>
       <Text style={styles.historyCardDate}>
-        {new Date(item.date).toLocaleDateString('id-ID', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        })}
+        {formatDateShortTime(item.date)}
       </Text>
       <View style={styles.historyCardFooter}>
         <View style={styles.metaBadge}>
@@ -66,7 +62,7 @@ function HistoryCardBase({ item, onPress }: HistoryCardProps) {
           </Text>
         </View>
         <Text style={styles.historyTotal}>
-          Rp {item.grandTotal.toLocaleString('id-ID')}
+          {formatRupiah(item.grandTotal)}
         </Text>
       </View>
     </TouchableOpacity>
@@ -115,7 +111,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
         const imageUri = result.assets[0].uri;
         navigation.navigate('Ocr', { imageUri });
       }
-    } catch (error) {
+    } catch {
       // silent fail
     }
   };
@@ -257,7 +253,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#070A10',
+    backgroundColor: colors.bg,
   },
   cyberGrid: {
     position: 'absolute',
@@ -281,10 +277,10 @@ const styles = StyleSheet.create({
   },
   settingsBtn: {
     padding: 6,
-    backgroundColor: 'rgba(0, 240, 255, 0.1)',
+    backgroundColor: colors.accentSoft,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.3)',
+    borderColor: colors.accentBorder,
   },
   settingsBtnText: {
     fontSize: 18,
@@ -298,9 +294,9 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#00F0FF',
+    backgroundColor: colors.accent,
     marginRight: 6,
-    shadowColor: '#00F0FF',
+    shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.9,
     shadowRadius: 6,
@@ -309,7 +305,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#00F0FF',
+    color: colors.accent,
     letterSpacing: 1.5,
   },
   appTitle: {
@@ -319,18 +315,18 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
   accentText: {
-    color: '#00F0FF',
+    color: colors.accent,
   },
   appByline: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#00D4FF',
+    color: colors.accent,
     letterSpacing: 1,
     marginTop: 2,
   },
   appSubtitle: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textDim,
     marginTop: 4,
     letterSpacing: 0.5,
   },
@@ -341,9 +337,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#0E1626',
     borderWidth: 1.5,
-    borderColor: '#00F0FF',
+    borderColor: colors.accent,
     padding: 20,
-    shadowColor: '#00F0FF',
+    shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 16,
@@ -357,7 +353,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: '#00F0FF',
+    backgroundColor: colors.accent,
   },
   scanContent: {
     flexDirection: 'row',
@@ -366,7 +362,7 @@ const styles = StyleSheet.create({
   scanButtonIcon: {
     fontSize: 30,
     marginRight: 16,
-    color: '#00F0FF',
+    color: colors.accent,
   },
   scanButtonText: {
     fontSize: 16,
@@ -376,7 +372,7 @@ const styles = StyleSheet.create({
   },
   scanButtonSubtext: {
     fontSize: 11,
-    color: '#9CA3AF',
+    color: colors.textFaint,
     marginTop: 4,
   },
   historySection: {
@@ -392,21 +388,21 @@ const styles = StyleSheet.create({
   historyTitle: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#9CA3AF',
+    color: colors.textFaint,
     letterSpacing: 1.5,
   },
   countBadge: {
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.border,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.line,
   },
   countBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#64748B',
+    color: colors.textSubtle,
     letterSpacing: 0.5,
   },
   categoryScrollContainer: {
@@ -421,35 +417,35 @@ const styles = StyleSheet.create({
   categoryChip: {
     paddingVertical: 6,
     paddingHorizontal: 12,
-    backgroundColor: '#0E1422',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     marginRight: 8,
   },
   categoryChipActive: {
-    backgroundColor: 'rgba(0, 240, 255, 0.15)',
-    borderColor: '#00F0FF',
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.accent,
   },
   categoryChipText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#64748B',
+    color: colors.textSubtle,
     letterSpacing: 0.5,
   },
   categoryChipTextActive: {
-      color: '#00F0FF',
+      color: colors.accent,
     },
     listContent: {
     paddingBottom: 24,
   },
   historyCard: {
-    backgroundColor: '#0E1422',
+    backgroundColor: colors.surface,
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     position: 'relative',
     overflow: 'hidden',
   },
@@ -459,7 +455,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 3,
-    backgroundColor: '#00F0FF',
+    backgroundColor: colors.accent,
   },
   historyCardTop: {
     flexDirection: 'row',
@@ -469,7 +465,7 @@ const styles = StyleSheet.create({
   historyCardTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#F9FAFB',
+    color: colors.text,
     letterSpacing: 0.5,
     flex: 1,
     marginRight: 8,
@@ -479,20 +475,20 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 8,
   },
-  paidBadgeSmall: { backgroundColor: 'rgba(16, 185, 129, 0.15)', borderWidth: 1, borderColor: '#10B981' },
-  unpaidBadgeSmall: { backgroundColor: 'rgba(245, 158, 11, 0.15)', borderWidth: 1, borderColor: '#F59E0B' },
+  paidBadgeSmall: { backgroundColor: colors.successSoft, borderWidth: 1, borderColor: colors.success },
+  unpaidBadgeSmall: { backgroundColor: colors.warningSoft, borderWidth: 1, borderColor: colors.warning },
   statusBadgeSmallText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
-  paidBadgeSmallText: { color: '#10B981' },
-  unpaidBadgeSmallText: { color: '#F59E0B' },
+  paidBadgeSmallText: { color: colors.success },
+  unpaidBadgeSmallText: { color: colors.warning },
   deleteText: {
-    color: '#EF4444',
+    color: colors.danger,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1,
   },
   historyCardDate: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textDim,
     marginTop: 4,
   },
   historyCardFooter: {
@@ -513,13 +509,13 @@ const styles = StyleSheet.create({
   metaBadgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#9CA3AF',
+    color: colors.textFaint,
     letterSpacing: 0.5,
   },
   historyTotal: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#00F0FF',
+    color: colors.accent,
     letterSpacing: 0.5,
   },
   emptyContainer: {
@@ -533,19 +529,19 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: '#111827',
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
   emptyIcon: {
     fontSize: 24,
-    color: '#00F0FF',
+    color: colors.accent,
   },
   emptyText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#9CA3AF',
+    color: colors.textFaint,
     letterSpacing: 1,
   },
   emptySubtext: {
