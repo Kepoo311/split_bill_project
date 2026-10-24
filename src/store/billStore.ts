@@ -13,6 +13,7 @@ interface BillState {
   deleteBill: (id: string) => Promise<void>;
   toggleMemberPayment: (billId: string, memberId: string) => Promise<void>;
   updateBillCategory: (billId: string, category: string) => Promise<void>;
+  updateBillTitle: (billId: string, title: string) => Promise<void>;
   saveLearningData: (rawOcrText: string, correctedItems: BillItem[]) => Promise<void>;
   loadLearningData: () => Promise<LearningData[]>;
   loadPaymentMethods: () => Promise<void>;
@@ -89,6 +90,19 @@ export const useBillStore = create<BillState>((set, get) => ({
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     } catch (e) {
       console.warn('Gagal update kategori:', e);
+    }
+  },
+  updateBillTitle: async (billId: string, title: string) => {
+    const cleanTitle = title.trim();
+    if (!cleanTitle) return;
+    const updated = get().history.map((bill) =>
+      bill.id === billId ? { ...bill, title: cleanTitle } : bill
+    );
+    set({ history: updated });
+    try {
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Gagal update judul:', e);
     }
   },
   saveLearningData: async (rawOcrText: string, correctedItems: BillItem[]) => {

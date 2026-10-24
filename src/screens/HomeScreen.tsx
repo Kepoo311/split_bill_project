@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useBillStore } from '../store/billStore';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types';
+import { BillHistory, RootStackParamList } from '../types';
 import { CyberModal } from '../components/CyberModal';
 import { UpdateBanner } from '../components/UpdateBanner';
 
@@ -21,14 +21,78 @@ interface Props {
   navigation: HomeScreenNavigationProp;
 }
 
+interface HistoryCardProps {
+  item: BillHistory;
+  onPress: (bill: BillHistory) => void;
+}
+
+// Item list memoized + callback stabil: daftar panjang tidak me-render ulang
+// semua kartu saat satu state lain di screen berubah.
+function HistoryCardBase({ item, onPress }: HistoryCardProps) {
+  const paidCount = item.results?.filter((r) => item.paidMemberIds?.includes(r.memberId)).length || 0;
+  const totalCount = item.results?.length || 0;
+  const isAllPaid = totalCount > 0 && paidCount === totalCount;
+
+  return (
+    <TouchableOpacity
+      style={styles.historyCard}
+      activeOpacity={0.8}
+      onPress={() => onPress(item)}
+    >
+      <View style={styles.cardGlowLine} />
+      <View style={styles.historyCardTop}>
+        <Text style={styles.historyCardTitle} numberOfLines={1} ellipsizeMode="tail">
+          {item.title}
+        </Text>
+        <View style={[styles.statusBadgeSmall, isAllPaid ? styles.paidBadgeSmall : styles.unpaidBadgeSmall]}>
+          <Text style={[styles.statusBadgeSmallText, isAllPaid ? styles.paidBadgeSmallText : styles.unpaidBadgeSmallText]}>
+            {isAllPaid ? '✓ LUNAS' : `${paidCount}/${totalCount} BAYAR`}
+          </Text>
+        </View>
+      </View>
+      <Text style={styles.historyCardDate}>
+        {new Date(item.date).toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })}
+      </Text>
+      <View style={styles.historyCardFooter}>
+        <View style={styles.metaBadge}>
+          <Text style={styles.metaBadgeText}>
+            {item.members.length} ORANG • {item.items.length} ITEM
+          </Text>
+        </View>
+        <Text style={styles.historyTotal}>
+          Rp {item.grandTotal.toLocaleString('id-ID')}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+const HistoryCard = React.memo(HistoryCardBase);
+
 export const HomeScreen: React.FC<Props> = ({ navigation }) => {
-  const { history, loadHistory, deleteBill } = useBillStore();
+  // Selector per-field: hanya re-render saat history berubah, bukan tiap
+  // bagian store lain diperbarui.
+  const history = useBillStore((s) => s.history);
+  const loadHistory = useBillStore((s) => s.loadHistory);
   const [filterCategory, setFilterCategory] = useState<string>('Semua');
   const [showSourceModal, setShowSourceModal] = useState(false);
 
   useEffect(() => {
     loadHistory();
   }, [loadHistory]);
+
+  const openDetail = useCallback(
+    (bill: BillHistory) => {
+      navigation.navigate('HistoryDetail', { bill: bill });
+    },
+    [navigation],
+  );
 
   const categories = ['Semua', 'Makanan', 'Nongkrong', 'Belanja', 'Lainnya'];
   const filteredHistory = filterCategory === 'Semua'
@@ -149,48 +213,9 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => {
-              const paidCount = item.results?.filter((r) => item.paidMemberIds?.includes(r.memberId)).length || 0;
-              const totalCount = item.results?.length || 0;
-              const isAllPaid = totalCount > 0 && paidCount === totalCount;
-
-              return (
-                <TouchableOpacity
-                  style={styles.historyCard}
-                  activeOpacity={0.8}
-                  onPress={() => navigation.navigate('HistoryDetail', { bill: item })}
-                >
-                  <View style={styles.cardGlowLine} />
-                  <View style={styles.historyCardTop}>
-                    <Text style={styles.historyCardTitle}>{item.title}</Text>
-                    <View style={[styles.statusBadgeSmall, isAllPaid ? styles.paidBadgeSmall : styles.unpaidBadgeSmall]}>
-                      <Text style={[styles.statusBadgeSmallText, isAllPaid ? styles.paidBadgeSmallText : styles.unpaidBadgeSmallText]}>
-                        {isAllPaid ? '✓ LUNAS' : `${paidCount}/${totalCount} BAYAR`}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text style={styles.historyCardDate}>
-                    {new Date(item.date).toLocaleDateString('id-ID', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </Text>
-                  <View style={styles.historyCardFooter}>
-                    <View style={styles.metaBadge}>
-                      <Text style={styles.metaBadgeText}>
-                        {item.members.length} ORANG • {item.items.length} ITEM
-                      </Text>
-                    </View>
-                    <Text style={styles.historyTotal}>
-                      Rp {item.grandTotal.toLocaleString('id-ID')}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            }}
+            renderItem={({ item }) => (
+              <HistoryCard item={item} onPress={openDetail} />
+            )}
           />
         )}
       </View>

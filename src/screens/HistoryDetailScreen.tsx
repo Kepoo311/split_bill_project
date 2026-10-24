@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   ScrollView,
 } from 'react-native';
@@ -16,8 +18,16 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HistoryDetail'>;
 
 export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const { bill: initialBill } = route.params;
-  const { history, toggleMemberPayment, deleteBill, updateBillCategory } = useBillStore();
+  // Selector per-field: screen hanya re-render saat data yang dipakai berubah
+  const history = useBillStore((s) => s.history);
+  const toggleMemberPayment = useBillStore((s) => s.toggleMemberPayment);
+  const deleteBill = useBillStore((s) => s.deleteBill);
+  const updateBillCategory = useBillStore((s) => s.updateBillCategory);
+  const updateBillTitle = useBillStore((s) => s.updateBillTitle);
   const { showCyberAlert, cyberAlertModal } = useCyberAlert();
+
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState('');
 
   // Ambil state terkini dari store jika ada update
   const currentBill = history.find((b) => b.id === initialBill.id) || initialBill;
@@ -28,6 +38,23 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const isAllPaid = totalMembers > 0 && paidCount === totalMembers;
 
   const categories = ['Makanan', 'Nongkrong', 'Belanja', 'Lainnya'];
+
+  const handleStartEditTitle = () => {
+    setTitleDraft(currentBill.title);
+    setIsEditingTitle(true);
+  };
+
+  const handleSaveTitle = async () => {
+    const cleanTitle = titleDraft.trim();
+    if (!cleanTitle) {
+      showCyberAlert('Nama Kosong', 'Isi nama transaksinya, atau tap Batal untuk membatalkan.');
+      return;
+    }
+    if (cleanTitle !== currentBill.title) {
+      await updateBillTitle(currentBill.id, cleanTitle);
+    }
+    setIsEditingTitle(false);
+  };
 
   const handleDelete = () => {
     showCyberAlert(
@@ -74,7 +101,39 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
           </View>
 
-          <Text style={styles.billTitle}>{currentBill.title}</Text>
+          {isEditingTitle ? (
+            <View style={styles.titleEditRow}>
+              <TextInput
+                style={styles.titleInput}
+                value={titleDraft}
+                onChangeText={setTitleDraft}
+                placeholder="Nama transaksi, mis. Makan Tim Futsal"
+                placeholderTextColor="#6B7280"
+                maxLength={60}
+                autoFocus
+                returnKeyType="done"
+                onSubmitEditing={handleSaveTitle}
+              />
+              <Pressable style={styles.titleSaveBtn} onPress={handleSaveTitle}>
+                <Text style={styles.titleSaveText}>Simpan</Text>
+              </Pressable>
+              <Pressable
+                style={styles.titleCancelBtn}
+                onPress={() => setIsEditingTitle(false)}
+              >
+                <Text style={styles.titleCancelText}>Batal</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <View style={styles.titleRow}>
+              <Text style={styles.billTitle} numberOfLines={2}>
+                {currentBill.title}
+              </Text>
+              <Pressable style={styles.titleEditBtn} onPress={handleStartEditTitle} hitSlop={8}>
+                <Text style={styles.titleEditIcon}>✏️</Text>
+              </Pressable>
+            </View>
+          )}
           <Text style={styles.billDate}>
             {new Date(currentBill.date).toLocaleDateString('id-ID', {
               weekday: 'long',
@@ -268,7 +327,51 @@ const styles = StyleSheet.create({
   statusBadgeText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
   paidBadgeText: { color: '#10B981' },
   unpaidBadgeText: { color: '#F59E0B' },
-  billTitle: { fontSize: 20, fontWeight: '900', color: '#F9FAFB', marginTop: 12 },
+  billTitle: { fontSize: 20, fontWeight: '900', color: '#F9FAFB', marginTop: 12, flex: 1 },
+  titleRow: { flexDirection: 'row', alignItems: 'center' },
+  titleEditBtn: {
+    padding: 6,
+    marginTop: 10,
+    marginLeft: 6,
+    backgroundColor: 'rgba(0, 240, 255, 0.08)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 240, 255, 0.3)',
+  },
+  titleEditIcon: { fontSize: 13 },
+  titleEditRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    gap: 8,
+  },
+  titleInput: {
+    flex: 1,
+    backgroundColor: '#070A10',
+    borderWidth: 1,
+    borderColor: '#00F0FF',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#F9FAFB',
+  },
+  titleSaveBtn: {
+    backgroundColor: '#00F0FF',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  titleSaveText: { color: '#070A10', fontSize: 12, fontWeight: '800' },
+  titleCancelBtn: {
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  titleCancelText: { color: '#94A3B8', fontSize: 12, fontWeight: '700' },
   billDate: { fontSize: 12, color: '#6B7280', marginTop: 2 },
   grandDivider: { height: 1, backgroundColor: '#1E293B', marginVertical: 14 },
   grandLabel: { fontSize: 11, color: '#6B7280', fontWeight: '700', letterSpacing: 1.5 },
