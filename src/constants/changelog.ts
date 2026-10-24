@@ -1,5 +1,13 @@
 export const CHANGELOG = [
   {
+    version: '1.0.6',
+    date: '2026-10-24',
+    items: [
+      'Ekspor & impor data: backup seluruh riwayat, metode pembayaran, dan koreksi OCR ke file .json — ada di Pengaturan › Data & Backup',
+      'Data tersimpan lebih aman: ganti HP atau uninstall tidak lagi berarti kehilangan riwayat',
+    ],
+  },
+  {
     version: '1.0.5',
     date: '2026-10-24',
     items: [

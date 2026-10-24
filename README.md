@@ -22,23 +22,24 @@ Aplikasi masih dalam tahap pengembangan. Hasil OCR dan parsing perlu diperiksa s
 
 - Memindai struk dengan kamera atau memilih foto dari galeri.
 - Mengenali teks struk secara lokal dengan Google ML Kit Text Recognition.
-- Menyusun teks OCR berdasarkan tata letak baris dan mendeteksi kandidat item serta harga.
+- Menyusun teks OCR berdasarkan tata letak baris dan mendeteksi kandidat item serta harga — kuat untuk format kafe (Faste, StopOne) dan retail (Indomaret, Alfamart).
 - Memeriksa dan mengedit item hasil OCR secara manual.
-- Menambahkan anggota, lalu membagi item kepada satu atau beberapa orang.
-- Membagi pajak, biaya layanan, dan diskon secara proporsional berdasarkan subtotal tiap orang.
-- Menyimpan riwayat tagihan, status pembayaran, kategori, metode pembayaran, dan data koreksi OCR di penyimpanan lokal.
+- Menambahkan anggota, lalu membagi item kepada satu atau beberapa orang; item tanpa pemilik dibagi ke semua anggota.
+- Membagi pajak, biaya layanan, dan diskon secara proporsional, dengan pembulatan *largest-remainder* agar total semua orang persis sama dengan grand total.
+- Menyimpan riwayat tagihan (nama bisa diedit), status pembayaran, kategori, metode pembayaran, dan data koreksi OCR di penyimpanan lokal.
 - Membagikan ringkasan tagihan dan detail pembayaran; gambar QRIS dapat disertakan jika tersedia.
-- Antarmuka aplikasi menggunakan modal kustom.
+- Ekspor/impor backup data (.json) dari halaman Pengaturan.
+- Pembaruan aplikasi over-the-air (EAS Update): banner pembaruan di Beranda + mode otomatis/manual di Pengaturan, dengan changelog in-app.
 
 ## Teknologi
 
-- React Native dan Expo
-- TypeScript
+- React Native 0.86 dan Expo SDK 57
+- TypeScript (strict)
 - Google ML Kit melalui `@react-native-ml-kit/text-recognition`
-- AsyncStorage untuk penyimpanan lokal
-- Zustand untuk state management
-- React Navigation
-- Expo Image Picker dan `react-native-share`
+- AsyncStorage untuk penyimpanan lokal, Zustand untuk state management
+- React Navigation (native stack)
+- expo-image, expo-camera, expo-image-picker, expo-clipboard, expo-updates, react-native-share
+- Design tokens terpusat di `src/theme.ts`; formatter Intl di-cache di `src/utils/format.ts`
 
 ## Alur penggunaan
 
@@ -93,24 +94,38 @@ Untuk menjalankan langsung di Android dengan Android SDK yang sudah dikonfiguras
 npm run android
 ```
 
-> **Catatan:** Google ML Kit menggunakan modul native sehingga aplikasi ini tidak dapat menjalankan fitur OCR di Expo Go standar. Gunakan custom development client atau native build.
-
-## Build APK Android
-
-Profil EAS `production` dikonfigurasi untuk menghasilkan APK. Pastikan sudah login ke akun Expo yang memiliki akses ke project ini, lalu jalankan:
+Verifikasi kualitas (sama dengan yang dijalankan CI):
 
 ```bash
-npx eas-cli build --platform android --profile production
+npm test          # 91+ test: parser OCR, parser struk asli, dan pembagian tagihan
+npx tsc --noEmit  # typecheck
+npx expo lint     # lint (0 masalah dipertahankan)
 ```
 
-Build release Android mengaktifkan ProGuard/R8 dan resource shrinking melalui `expo-build-properties`. Build APK belum termasuk dalam repository; distribusikan melalui GitHub Releases jika sudah siap.
+> **Catatan:** Google ML Kit menggunakan modul native sehingga aplikasi ini tidak dapat menjalankan fitur OCR di Expo Go standar. Gunakan custom development client atau native build.
+
+## Build dan rilis
+
+Profil EAS: `preview` (APK, channel `preview`, distribusi internal) dan `production` (APK store). Build release mengaktifkan ProGuard/R8 dan resource shrinking melalui `expo-build-properties`.
+
+```bash
+# Build APK baru (diperlukan saat modul native berubah)
+npx eas-cli build --platform android --profile preview
+
+# Update over-the-air untuk perubahan JavaScript saja (runtime harus cocok)
+npx eas-cli update --branch preview --platform android --environment production --non-interactive
+```
+
+Distribusi APK dilakukan lewat GitHub Releases (tag `Beta`, di-update setiap rilis). `eas update` hanya mengirim bundle JS ke perangkat — **tidak** meng-push ke GitHub; jalankan `git push` terpisah.
+
+> **Catatan runtime:** `runtimeVersion` memakai policy `appVersion` — pembaruan OTA hanya sampai ke build dengan versi yang sama. Jangan bump `app.json` sebelum build baru benar-benar terpasang.
 
 ## Privasi dan batasan
 
 - Pemrosesan OCR dilakukan di perangkat. Hasil OCR, koreksi, metode pembayaran, dan riwayat tagihan disimpan menggunakan penyimpanan lokal aplikasi.
 - Berbagi tagihan menggunakan menu share perangkat dan aplikasi tujuan yang dipilih pengguna. Aplikasi tujuan mungkin memerlukan koneksi internet.
 - OCR dan parser menggunakan pengenalan teks serta heuristik format struk; akurasi dapat berbeda antarstruk. Selalu periksa nama item, harga, pajak, biaya layanan, dan diskon.
-- Menghapus atau memasang ulang aplikasi dapat menghapus data lokal. Belum ada sinkronisasi atau pencadangan cloud bawaan.
+- Menghapus atau memasang ulang aplikasi menghapus data lokal. Gunakan **Ekspor Data** di Pengaturan untuk mencadangkan riwayat ke file, dan **Impor dari Clipboard** untuk memulihkannya. Tidak ada sinkronisasi cloud.
 
 ## Kontribusi dan pelaporan masalah
 

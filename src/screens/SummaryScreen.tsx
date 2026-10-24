@@ -146,19 +146,6 @@ export const SummaryScreen: React.FC<Props> = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  backButton: { padding: 4 },
-  backButtonText: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 0.5 },
-  screenTitle: { fontSize: 16, fontWeight: '800', color: colors.text, letterSpacing: 1 },
   scroll: { padding: 16 },
   grandCard: {
     backgroundColor: colors.surface,

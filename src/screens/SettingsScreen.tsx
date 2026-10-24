@@ -13,7 +13,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Updates from 'expo-updates';
+import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
+import Share from 'react-native-share';
 import { useBillStore } from '../store/billStore';
 import { useUpdateStore, type UpdateResult } from '../store/updateStore';
 import { CHANGELOG } from '../constants/changelog';
@@ -154,6 +156,48 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       disabled: 'Pembaruan OTA tidak aktif di build pengembangan.',
     };
     setUpdateStatus(messages[result]);
+  };
+
+  const handleExport = async () => {
+    try {
+      const json = useBillStore.getState().exportData();
+      if (!FileSystem.cacheDirectory) {
+        throw new Error('Penyimpanan sementara tidak tersedia.');
+      }
+      const fileName = `splitbill-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+      await FileSystem.writeAsStringAsync(fileUri, json, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+      await Share.open({
+        url: fileUri,
+        type: 'application/json',
+        title: 'Backup Split Bill',
+        failOnCancel: false,
+      });
+    } catch {
+      showCyberAlert('Gagal Ekspor', 'Data tidak dapat diekspor. Coba lagi.');
+    }
+  };
+
+  const handleImport = async () => {
+    try {
+      const text = await Clipboard.getStringAsync();
+      if (!text.trim()) {
+        showCyberAlert(
+          'Clipboard Kosong',
+          'Buka file backup (.json), pilih seluruh isinya, salin, lalu kembali dan tap tombol ini.',
+        );
+        return;
+      }
+      const summary = await useBillStore.getState().importData(text);
+      showCyberAlert(
+        'Impor Selesai',
+        `Riwayat +${summary.historyAdded} • Pembayaran +${summary.paymentsAdded} • Koreksi OCR +${summary.learningAdded}\n\nData yang sudah ada tidak diduplikasi.`,
+      );
+    } catch (e) {
+      showCyberAlert('Impor Gagal', e instanceof Error ? e.message : 'Data tidak dapat diimpor.');
+    }
   };
 
   return (
@@ -340,6 +384,22 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             Versi {CHANGELOG[0].version} • Channel {Updates.channel ?? '-'}
           </Text>
         </View>
+
+        {/* Section Data & Backup */}
+        <Text style={styles.sectionTitle}>Data &amp; Backup</Text>
+        <View style={styles.card}>
+          <Text style={styles.subHint}>
+            Semua data tersimpan offline di HP ini. Ekspor rutin ke file backup
+            menyelamatkan riwayatmu saat ganti HP atau uninstall. Impor dilakukan
+            dengan menyalin isi file backup lalu tap tombol impor.
+          </Text>
+          <TouchableOpacity style={styles.checkBtn} onPress={handleExport}>
+            <Text style={styles.checkBtnText}>⬆️ Ekspor Data (.json)</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.restartBtn} onPress={handleImport}>
+            <Text style={styles.restartBtnText}>⬇️ Impor dari Clipboard</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       <CyberModal
@@ -355,19 +415,6 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  backButton: { padding: 4 },
-  backButtonText: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 0.5 },
-  screenTitle: { fontSize: 16, fontWeight: '800', color: colors.text, letterSpacing: 0.8 },
   scroll: { padding: 16, paddingBottom: 40 },
   card: {
     backgroundColor: colors.surface,

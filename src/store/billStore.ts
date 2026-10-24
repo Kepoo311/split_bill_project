@@ -3,6 +3,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BillHistory, LearningData, BillItem, PaymentMethod } from '../types';
 import { generateId } from '../utils/ids';
 
+export interface ImportSummary {
+  historyAdded: number;
+  paymentsAdded: number;
+  learningAdded: number;
+}
+
+export interface BackupPayload {
+  app: 'split-bill-kepox';
+  schema: 1;
+  exportedAt: string;
+  history: BillHistory[];
+  paymentMethods: PaymentMethod[];
+  learningData: LearningData[];
+}
+
 interface BillState {
   history: BillHistory[];
   learningData: LearningData[];
@@ -19,6 +34,8 @@ interface BillState {
   loadPaymentMethods: () => Promise<void>;
   savePaymentMethod: (method: Omit<PaymentMethod, 'id'>) => Promise<void>;
   deletePaymentMethod: (id: string) => Promise<void>;
+  exportData: () => string;
+  importData: (raw: string) => Promise<ImportSummary>;
 }
 
 const STORAGE_KEY = '@split_bill_history_v1';
@@ -172,12 +189,85 @@ export const useBillStore = create<BillState>((set, get) => ({
       await get().loadPaymentMethods();
     }
     const updated = get().paymentMethods.filter((m) => m.id !== id);
-    try {
-      await AsyncStorage.setItem(PAYMENT_METHODS_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.warn('Gagal menghapus payment method:', e);
-      throw e;
-    }
+    await AsyncStorage.setItem(PAYMENT_METHODS_KEY, JSON.stringify(updated));
     set({ paymentMethods: updated });
+  },
+
+  exportData: () => {
+    const payload: BackupPayload = {
+      app: 'split-bill-kepox',
+      schema: 1,
+      exportedAt: new Date().toISOString(),
+      history: get().history,
+      paymentMethods: get().paymentMethods,
+      learningData: get().learningData,
+    };
+    return JSON.stringify(payload, null, 2);
+  },
+
+  importData: async (raw: string) => {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      throw new Error('Teks bukan JSON yang valid. Pastikan seluruh isi file backup tersalin.');
+    }
+    const root = parsed as Partial<BackupPayload>;
+    if (root.app !== 'split-bill-kepox' || !Array.isArray(root.history)) {
+      throw new Error('Format file backup tidak dikenal. Gunakan hasil ekspor dari Split Bill.');
+    }
+
+    const isValidPayment = (entry: unknown): entry is PaymentMethod =>
+      !!entry &&
+      typeof entry === 'object' &&
+      typeof (entry as PaymentMethod).id === 'string' &&
+      ['bank', 'ewallet', 'qris'].includes((entry as PaymentMethod).type) &&
+      typeof (entry as PaymentMethod).name === 'string';
+    const isValidLearning = (entry: unknown): entry is LearningData =>
+      !!entry &&
+      typeof entry === 'object' &&
+      typeof (entry as LearningData).id === 'string' &&
+      typeof (entry as LearningData).rawOcrText === 'string' &&
+      Array.isArray((entry as LearningData).correctedItems);
+
+    const incomingBills = (root.history as unknown[]).filter(isValidBill);
+    const incomingPayments = (Array.isArray(root.paymentMethods) ? root.paymentMethods : []).filter(
+      isValidPayment,
+    );
+    // Path gambar QRIS lokal tidak ikut pindah perangkat — dilepas agar tidak
+    // menampilkan gambar rusak setelah impor.
+    const cleanPayments = incomingPayments.map(({ qrisImageUri, ...rest }) => rest);
+    const incomingLearning = (Array.isArray(root.learningData) ? root.learningData : []).filter(
+      isValidLearning,
+    );
+
+    const existingBillIds = new Set(get().history.map((b) => b.id));
+    const existingPaymentIds = new Set(get().paymentMethods.map((p) => p.id));
+    const existingLearningIds = new Set(get().learningData.map((l) => l.id));
+
+    const newBills = incomingBills.filter((b) => !existingBillIds.has(b.id));
+    const newPayments = cleanPayments.filter((p) => !existingPaymentIds.has(p.id));
+    const newLearning = incomingLearning
+      .filter((l) => !existingLearningIds.has(l.id))
+      .slice(0, MAX_LEARNING);
+
+    const mergedHistory = [...newBills, ...get().history].slice(0, MAX_HISTORY);
+    const mergedPayments = [...get().paymentMethods, ...newPayments];
+    const mergedLearning = [...newLearning, ...get().learningData].slice(0, MAX_LEARNING);
+
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(mergedHistory));
+    await AsyncStorage.setItem(PAYMENT_METHODS_KEY, JSON.stringify(mergedPayments));
+    await AsyncStorage.setItem(LEARNING_KEY, JSON.stringify(mergedLearning));
+    set({
+      history: mergedHistory,
+      paymentMethods: mergedPayments,
+      learningData: mergedLearning,
+    });
+
+    return {
+      historyAdded: newBills.length,
+      paymentsAdded: newPayments.length,
+      learningAdded: newLearning.length,
+    };
   },
 }));

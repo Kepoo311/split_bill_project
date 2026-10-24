@@ -262,19 +262,6 @@ export const ShareBillScreen: React.FC<Props> = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  backButton: { padding: 4 },
-  backButtonText: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 0.5 },
-  screenTitle: { fontSize: 16, fontWeight: '800', color: colors.text, letterSpacing: 0.8 },
   scroll: { padding: 16, paddingBottom: 40 },
   card: {
     backgroundColor: colors.surface,
