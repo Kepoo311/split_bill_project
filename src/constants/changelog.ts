@@ -1,5 +1,13 @@
 export const CHANGELOG = [
   {
+    version: '1.0.2',
+    date: '2026-10-24',
+    items: [
+      'Kritis: parser OCR kembali mendeteksi item dari struk (crypto.randomUUID tidak tersedia di mesin React Native, semua hasil scan jatuh ke input manual)',
+      'ID item, anggota, dan riwayat kini punya fallback UUID v4 yang aman di semua platform',
+    ],
+  },
+  {
     version: '1.0.1',
     date: '2026-10-23',
     items: [

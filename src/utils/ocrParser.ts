@@ -1,4 +1,5 @@
 import { BillItem, LearningData } from '../types/index';
+import { generateId } from './ids';
 
 const normalizeReceiptText = (text: string) =>
   text
@@ -18,7 +19,7 @@ const parseMoney = (value: string) => {
 };
 
 const makeItem = (name: string, price: number): BillItem => ({
-  id: crypto.randomUUID(),
+  id: generateId(),
   nama_item: name.trim().replace(/\s+/g, ' '),
   harga: price,
   assignedTo: [],
@@ -28,7 +29,7 @@ const isAddress = (line: string) =>
   /(?:j[l1]\.?\s|jalan|prof\.\s*dr|gedong\s*meneng|sumantri|brojonegoro|kedaton|sidodadi|raj\s*abasa|kec\.|kel\.|kota|kab\.|lampung|indonesia|\b35\d{3}\b)/i.test(line);
 
 const isMeta = (line: string) =>
-  /^(?:(?:\d+[.)]\s*)?pesanan|struk pesanan|no\.?|tanggal|tangga\s*l|jam masuk|jam|waktu|no meja|mode|kasir|cashier|user|date|sales type|order number|penjualan|caps|lock|shift|microsoft|office|home 2024|classic apps|total qty)\b/i.test(line) ||
+  /^(?:(?:\d+[.)]\s*)?pesanan|struk pesanan|no\.?|tanggal|tangga\s*l|jam masuk|jam|waktu|no meja|mode|kasir|cashier|user|date|sales type|order type|order number|penjualan|caps|lock|shift|microsoft|office|home 2024|classic apps|total qty)\b/i.test(line) ||
   /^\d+\s+items?\b/i.test(line) ||
   /(?:quick service|dine in|take away|faste coffee|stopone cafe|unila|rajabasa)/i.test(line) ||
   /^[:\s]*(?:FC[RUO]|SFC|POS-|no\.\s*\d|[0-3]?\d[-/][01]?\d[-/]\d{2,4}|kasir|cashier)\b/i.test(line);
@@ -52,6 +53,9 @@ const pushPrice = (
   const price = parseMoney(priceText);
   const cleanName = name
     .replace(/^\d+\s*[.)-]\s*/, '')
+    // Awalan qty POS (mis. "1 MIE AYAM") dibuang hanya bila sisa nama masih
+    // >= 2 kata, agar nama produk 1 kata berawasan angka seperti "7 UP" utuh.
+    .replace(/^\d{1,2}\s+(?=\S+\s+\S)/, '')
     .replace(/^[\s:,-]+|[\s:,-]+$/g, '')
     .replace(/\s+/g, ' ');
   if (!cleanName || cleanName.length < 2 || price < minimumPrice || price > 10000000) return;

@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BillItem, Member, RootStackParamList } from '../types';
 import { calculateSplit } from '../utils/calculateSplit';
+import { generateId } from '../utils/ids';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCyberAlert } from '../hooks/useCyberAlert';
 
@@ -42,7 +43,7 @@ export const SplitScreen: React.FC<Props> = ({ navigation, route }) => {
       showCyberAlert('Nama Sudah Ada', 'Gunakan nama atau inisial lain.');
       return;
     }
-    setMembers((prev) => [...prev, { id: crypto.randomUUID(), name: trimmed }]);
+    setMembers((prev) => [...prev, { id: generateId(), name: trimmed }]);
     setNewMemberName('');
   };
 

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BillHistory, LearningData, BillItem, PaymentMethod } from '../types';
+import { generateId } from '../utils/ids';
 
 interface BillState {
   history: BillHistory[];
@@ -42,7 +43,7 @@ export const useBillStore = create<BillState>((set, get) => ({
   saveBill: async (billData) => {
         const newEntry: BillHistory = {
           ...billData,
-          id: crypto.randomUUID(),
+          id: generateId(),
           date: new Date().toISOString(),
         };
         const updated = [newEntry, ...get().history].slice(0, MAX_HISTORY);
@@ -92,7 +93,7 @@ export const useBillStore = create<BillState>((set, get) => ({
   },
   saveLearningData: async (rawOcrText: string, correctedItems: BillItem[]) => {
       const newLearning: LearningData = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         rawOcrText,
         correctedItems,
         createdAt: new Date().toISOString(),
@@ -130,7 +131,7 @@ export const useBillStore = create<BillState>((set, get) => ({
       }
       const newMethod: PaymentMethod = {
         ...method,
-        id: crypto.randomUUID(),
+        id: generateId(),
       };
       const updated = [...get().paymentMethods, newMethod];
       await AsyncStorage.setItem(PAYMENT_METHODS_KEY, JSON.stringify(updated));

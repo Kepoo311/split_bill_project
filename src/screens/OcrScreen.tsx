@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { parseReceiptText, detectReceiptExtras } from '../utils/ocrParser';
 import { processReceiptOCR } from '../utils/ocrProcessor';
+import { generateId } from '../utils/ids';
 import type { TextRecognitionResult } from '@react-native-ml-kit/text-recognition';
 import { BillItem, RootStackParamList } from '../types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -108,7 +109,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
       if (parsed.length === 0) {
         setItems([
           {
-            id: crypto.randomUUID(),
+            id: generateId(),
             nama_item: 'Menu 1',
             harga: 10000,
             assignedTo: [],
@@ -121,7 +122,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
       showCyberAlert('Info', 'Silakan masukkan item menu secara manual.');
       setItems([
         {
-          id: crypto.randomUUID(),
+          id: generateId(),
           nama_item: 'Menu 1',
           harga: 10000,
           assignedTo: [],
@@ -154,7 +155,7 @@ export const OcrScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleAddItem = () => {
     setItemsModified(true);
     const newItem: BillItem = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       nama_item: 'Menu Baru',
       harga: 10000,
       assignedTo: [],
