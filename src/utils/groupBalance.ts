@@ -92,3 +92,51 @@ export const mergeGroupMembers = (groupMembers: Member[], billMembers: Member[])
   });
   return merged;
 };
+
+export interface TransferSuggestion {
+  fromId: string;
+  fromName: string;
+  toId: string;
+  toName: string;
+  amount: number;
+}
+
+/**
+ * Netting: daftar transfer minimum agar semua saldo beres. Berutang
+ * terbesar membayar ke penerima terbesar sampai habis — menghasilkan
+ * maksimal (jumlah anggota aktif − 1) transfer. Jumlah semua transfer
+ * persis sama dengan total utang (saldo grup selalu berjumlah 0).
+ */
+export const suggestSettlements = (balances: MemberBalance[]): TransferSuggestion[] => {
+  const debtors = balances
+    .filter((b) => b.balance < 0)
+    .map((b) => ({ ...b, remaining: -b.balance }))
+    .sort((a, b) => b.remaining - a.remaining);
+  const creditors = balances
+    .filter((b) => b.balance > 0)
+    .map((b) => ({ ...b, remaining: b.balance }))
+    .sort((a, b) => b.remaining - a.remaining);
+
+  const transfers: TransferSuggestion[] = [];
+  let i = 0;
+  let j = 0;
+  while (i < debtors.length && j < creditors.length) {
+    const debtor = debtors[i];
+    const creditor = creditors[j];
+    const amount = Math.min(debtor.remaining, creditor.remaining);
+    if (amount > 0) {
+      transfers.push({
+        fromId: debtor.memberId,
+        fromName: debtor.name,
+        toId: creditor.memberId,
+        toName: creditor.name,
+        amount,
+      });
+    }
+    debtor.remaining -= amount;
+    creditor.remaining -= amount;
+    if (debtor.remaining <= 0) i += 1;
+    if (creditor.remaining <= 0) j += 1;
+  }
+  return transfers;
+};

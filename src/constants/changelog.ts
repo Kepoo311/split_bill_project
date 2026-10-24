@@ -1,5 +1,15 @@
 export const CHANGELOG = [
   {
+    version: '1.0.9',
+    date: '2026-10-24',
+    items: [
+      'Kartu "CARA BERESIN TAGIHAN" di grup: daftar transfer minimum — mis. "Saya bayar Rp 20.000 ke Ripa" — terhitung otomatis biar semua impas',
+      'Teks saldo anggota kini eksplisit: "Bayar Rp X ke Y" / "Menerima Rp X dari ..." — bukan lagi angka +/- polos',
+      'Status lunas kini hanya untuk anggota yang berutang; yang menalangi tidak punya opsi lunas',
+      'Tombol "Tagih 📨" per transfer: kirim pesan tagihan siap-jadi ke WhatsApp',
+    ],
+  },
+  {
     version: '1.0.8',
     date: '2026-10-24',
     items: [

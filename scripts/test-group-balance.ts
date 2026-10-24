@@ -2,7 +2,7 @@
  * Test saldo grup patungan. Invariant: jumlah semua saldo = 0 (selama semua
  * struk mencatat penalang). Jalankan: npm test
  */
-import { computeGroupTotals, mergeGroupMembers } from '../src/utils/groupBalance';
+import { computeGroupTotals, mergeGroupMembers, suggestSettlements } from '../src/utils/groupBalance';
 import type { BillGroup, BillHistory, Member } from '../src/types';
 
 let failures = 0;
@@ -111,6 +111,31 @@ console.log('\n[5] Struk terhapus dari riwayat → entri dilewati tanpa crash');
 const t5 = computeGroupTotals(group1, new Map());
 check('saldo netral semua', t5.balances.every((b) => b.balance === 0), true);
 check('total 0', t5.totalSpent, 0);
+
+console.log('\n[6] Netting: saran transfer minimum');
+const mb = (id: string, name: string, balance: number) => ({ memberId: id, name, balance });
+const s6 = suggestSettlements([mb('a', 'Andi', 60000), mb('b', 'Budi', -35000), mb('c', 'Citra', -25000)]);
+check('2 transfer (n-1)', s6.length, 2);
+check('Budi → Andi 35rb', s6.some((t) => t.fromName === 'Budi' && t.toName === 'Andi' && t.amount === 35000), true);
+check('Citra → Andi 25rb', s6.some((t) => t.fromName === 'Citra' && t.toName === 'Andi' && t.amount === 25000), true);
+check('jumlah transfer = total utang', s6.reduce((s, t) => s + t.amount, 0), 60000);
+
+console.log('\n[7] Netting: debitur membayar ke >1 penerima (belah arah)');
+const s7 = suggestSettlements([mb('a', 'A', 50000), mb('b', 'B', 10000), mb('c', 'C', -40000), mb('d', 'D', -20000)]);
+check('jumlah transfer efisien (3 = n-1)', s7.length, 3);
+check('C → A 40rb', s7.some((t) => t.fromName === 'C' && t.toName === 'A' && t.amount === 40000), true);
+check('D → A 10rb', s7.some((t) => t.fromName === 'D' && t.toName === 'A' && t.amount === 10000), true);
+check('D → B 10rb', s7.some((t) => t.fromName === 'D' && t.toName === 'B' && t.amount === 10000), true);
+check('total 60rb', s7.reduce((s, t) => s + t.amount, 0), 60000);
+
+console.log('\n[8] Netting: kasus user (Saya/Zaqi berutang ke Ripa)');
+const s8 = suggestSettlements([mb('ripa', 'Ripa', 35000), mb('saya', 'Saya', -20000), mb('zaqi', 'Zaqi', -15000)]);
+check('Saya bayar 20rb ke Ripa', s8.some((t) => t.fromName === 'Saya' && t.toName === 'Ripa' && t.amount === 20000), true);
+check('Zaqi bayar 15rb ke Ripa', s8.some((t) => t.fromName === 'Zaqi' && t.toName === 'Ripa' && t.amount === 15000), true);
+
+console.log('\n[9] Netting: semua impas / kosong → tanpa transfer');
+check('semua 0', suggestSettlements([mb('a', 'A', 0), mb('b', 'B', 0)]), []);
+check('array kosong', suggestSettlements([]), []);
 
 console.log(`\n${failures === 0 ? 'SEMUA TEST LULUS' : `${failures} TEST GAGAL`}`);
 if (failures > 0) throw new Error(`${failures} test group balance gagal`);

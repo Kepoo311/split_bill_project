@@ -13,12 +13,18 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Image } from 'expo-image';
+import Share, { Social } from 'react-native-share';
 import { RootStackParamList, BillHistory } from '../types';
 import { TopBar } from '../components/TopBar';
 import { CyberModal } from '../components/CyberModal';
 import { useGroupStore } from '../store/groupStore';
 import { useBillStore } from '../store/billStore';
-import { computeGroupTotals, mergeGroupMembers } from '../utils/groupBalance';
+import {
+  computeGroupTotals,
+  mergeGroupMembers,
+  suggestSettlements,
+  type TransferSuggestion,
+} from '../utils/groupBalance';
 import { formatRupiah, formatDateShortTime } from '../utils/format';
 import { colors } from '../theme';
 
@@ -66,11 +72,38 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     () => (group ? computeGroupTotals(group, billsById) : null),
     [group, billsById],
   );
+  const suggestions = useMemo(
+    () => (totals ? suggestSettlements(totals.balances) : []),
+    [totals],
+  );
 
   const fail = useCallback((msg: string) => {
     setAlertMsg(msg);
     setShowAlert(true);
   }, []);
+
+  const handleTagih = async (transfer: TransferSuggestion) => {
+    if (!group) return;
+    const message =
+      `Hai ${transfer.fromName}! 👋\n\n` +
+      `Tagihan grup *${group.name}*:\n` +
+      `Kamu berutang *${formatRupiah(transfer.amount)}* ke *${transfer.toName}*.\n\n` +
+      `Sudah transfer? Tolong konfirmasi ya, terima kasih! 🙏\n\n` +
+      `_(dibuat otomatis via Split Bill By KepoX)_`;
+    try {
+      await Share.shareSingle({
+        title: `Tagihan ${group.name}`,
+        message,
+        social: Social.Whatsapp,
+      });
+    } catch {
+      try {
+        await Share.open({ title: `Tagihan ${group.name}`, message, failOnCancel: false });
+      } catch {
+        fail('Tidak dapat membuka menu berbagi.');
+      }
+    }
+  };
 
   if (!group || !totals) {
     return (
@@ -177,25 +210,71 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
             </View>
 
+            {suggestions.length > 0 && (
+              <View style={styles.settleCard}>
+                <Text style={styles.sectionTitle}>CARA BERESIN TAGIHAN</Text>
+                <Text style={styles.sectionHint}>
+                  Cukup {suggestions.length} transfer — terhitung otomatis biar semua impas.
+                </Text>
+                {suggestions.map((t) => (
+                  <View key={`${t.fromId}-${t.toId}`} style={styles.transferRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.transferText}>
+                        <Text style={styles.transferFrom}>{t.fromName}</Text>
+                        {' bayar '}
+                        <Text style={styles.transferAmount}>{formatRupiah(t.amount)}</Text>
+                        {' ke '}
+                        <Text style={styles.transferTo}>{t.toName}</Text>
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.tagihBtn}
+                      onPress={() => handleTagih(t)}
+                      hitSlop={6}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Tagih ${t.fromName} via WhatsApp`}
+                    >
+                      <Text style={styles.tagihBtnText}>Tagih 📨</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+
             <Text style={styles.sectionTitle}>SALDO ANGGOTA</Text>
             <Text style={styles.sectionHint}>
-              + diterima • − berutang • tap anggota untuk tandai lunas (bukti TF opsional)
+              Tap anggota yang berutang untuk tandai lunas (bukti TF opsional)
             </Text>
           </View>
         }
         renderItem={({ item }) => {
-          const settlement = group.settlements[item.memberId];
-          return (
-            <Pressable
-              style={({ pressed }) => [
-                styles.memberCard,
-                settlement && styles.memberCardSettled,
-                pressed && styles.cardPressed,
-              ]}
-              onPress={() => setActiveMemberId(item.memberId)}
-              accessibilityRole="button"
-              accessibilityLabel={`${item.name}, saldo ${formatRupiah(item.balance)}${settlement ? ', sudah lunas' : ''}`}
-            >
+          // Status lunas hanya relevan untuk yang berutang; penalang tidak
+          // punya opsi lunas — dialah yang menunggu pembayaran.
+          const isDebtor = item.balance < 0;
+          const settlement = isDebtor ? group.settlements[item.memberId] : undefined;
+          const outgoing = suggestions.filter((t) => t.fromId === item.memberId);
+          const incoming = suggestions.filter((t) => t.toId === item.memberId);
+          const transferLabel =
+            outgoing.length === 1
+              ? `${formatRupiah(outgoing[0].amount)} ke ${outgoing[0].toName}`
+              : `total ${formatRupiah(-item.balance)} ke ${outgoing.length} orang`;
+
+          const statusText = isDebtor
+            ? settlement
+              ? `✓ Lunas — ${transferLabel} sudah beres${settlement.proofUri ? ' • ada bukti TF' : ''}`
+              : `Bayar ${transferLabel}`
+            : item.balance > 0
+              ? incoming.length > 0
+                ? `Menerima ${formatRupiah(item.balance)} dari ${incoming.map((t) => t.fromName).join(', ')}`
+                : `Menunggu ${formatRupiah(item.balance)}`
+              : 'Impas';
+
+          const cardStyle = [
+            styles.memberCard,
+            settlement && styles.memberCardSettled,
+          ] as const;
+          const inner = (
+            <>
               {settlement?.proofUri ? (
                 <Image
                   source={{ uri: settlement.proofUri }}
@@ -210,29 +289,36 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
               <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={styles.memberName}>{item.name}</Text>
-                {settlement ? (
-                  <Text style={styles.settledText}>✓ Lunas {settlement.proofUri ? '• ada bukti TF' : ''}</Text>
-                ) : (
-                  <Text
-                    style={[
-                      styles.balanceText,
-                      item.balance > 0
+                <Text
+                  style={[
+                    styles.statusText,
+                    isDebtor && !settlement
+                      ? styles.balanceNegative
+                      : item.balance > 0
                         ? styles.balancePositive
-                        : item.balance < 0
-                          ? styles.balanceNegative
-                          : styles.balanceZero,
-                    ]}
-                  >
-                    {item.balance > 0
-                      ? `+${formatRupiah(item.balance)}`
-                      : item.balance < 0
-                        ? `−${formatRupiah(Math.abs(item.balance))}`
-                        : 'Impas'}
-                  </Text>
-                )}
+                        : styles.balanceZero,
+                  ]}
+                  numberOfLines={2}
+                >
+                  {statusText}
+                </Text>
               </View>
-            </Pressable>
+            </>
           );
+
+          if (isDebtor) {
+            return (
+              <Pressable
+                style={({ pressed }) => [...cardStyle, pressed && styles.cardPressed]}
+                onPress={() => setActiveMemberId(item.memberId)}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.name}: ${statusText}`}
+              >
+                {inner}
+              </Pressable>
+            );
+          }
+          return <View style={[...cardStyle]}>{inner}</View>;
         }}
         ListFooterComponent={
           <View>
@@ -442,11 +528,43 @@ const styles = StyleSheet.create({
   avatarText: { color: colors.accent, fontWeight: '900', fontSize: 15 },
   proofThumb: { width: 40, height: 40, borderRadius: 8, borderWidth: 1, borderColor: colors.successBorder },
   memberName: { fontSize: 14, fontWeight: '800', color: colors.text },
-  balanceText: { fontSize: 13, fontWeight: '800', marginTop: 2 },
+  statusText: { fontSize: 12, fontWeight: '700', marginTop: 2, lineHeight: 16 },
   balancePositive: { color: colors.success },
   balanceNegative: { color: colors.warning },
   balanceZero: { color: colors.textDim },
   settledText: { fontSize: 11, color: colors.success, fontWeight: '700', marginTop: 2 },
+  settleCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 16,
+    marginBottom: 20,
+  },
+  transferRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: 10,
+    marginTop: 10,
+  },
+  transferText: { fontSize: 12, color: colors.text, fontWeight: '600' },
+  transferFrom: { color: colors.warning, fontWeight: '800' },
+  transferTo: { color: colors.success, fontWeight: '800' },
+  transferAmount: { color: colors.accent, fontWeight: '900' },
+  tagihBtn: {
+    backgroundColor: colors.successSoft,
+    borderWidth: 1,
+    borderColor: colors.success,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginLeft: 8,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  tagihBtnText: { color: colors.success, fontSize: 11, fontWeight: '800' },
   billRow: {
     flexDirection: 'row',
     alignItems: 'center',
