@@ -18,7 +18,7 @@ import { TopBar } from '../components/TopBar';
 import { CyberModal } from '../components/CyberModal';
 import { useGroupStore } from '../store/groupStore';
 import { useBillStore } from '../store/billStore';
-import { computeGroupTotals } from '../utils/groupBalance';
+import { computeGroupTotals, mergeGroupMembers } from '../utils/groupBalance';
 import { formatRupiah, formatDateShortTime } from '../utils/format';
 import { colors } from '../theme';
 
@@ -84,6 +84,11 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   }
 
   const activeMember = group.members.find((m) => m.id === activeMemberId) ?? null;
+  // Grup kosong belum punya anggota (penggabungan terjadi di addBillToGroup),
+  // jadi kandidat penalang = anggota grup + anggota struk yang dipilih.
+  const payerCandidates = pickingBill
+    ? mergeGroupMembers(group.members, pickingBill.members)
+    : [];
   const activeSettlement = activeMemberId ? group.settlements[activeMemberId] : undefined;
   const candidateBills = history.filter(
     (b) => !group.entries.some((e) => e.billId === b.id),
@@ -345,7 +350,7 @@ export const GroupDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         onClose={() => setPickingBill(null)}
         buttons={[{ text: 'Batal', style: 'cancel' }]}
       >
-        {group.members.map((m) => (
+        {payerCandidates.map((m) => (
           <TouchableOpacity
             key={m.id}
             style={styles.pickerRow}

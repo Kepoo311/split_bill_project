@@ -17,6 +17,7 @@ import { useCyberAlert } from '../hooks/useCyberAlert';
 import { TopBar } from '../components/TopBar';
 import { CyberModal } from '../components/CyberModal';
 import { colors } from '../theme';
+import { mergeGroupMembers } from '../utils/groupBalance';
 import { formatRupiah, formatDateLong } from '../utils/format';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HistoryDetail'>;
@@ -93,6 +94,11 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const payerGroup = groups.find((g) => g.id === payerGroupId) ?? null;
+  // Grup baru belum punya anggota (penggabungan terjadi di addBillToGroup),
+  // jadi kandidat penalang = anggota grup saat ini + anggota struk ini.
+  const payerCandidates = payerGroup
+    ? mergeGroupMembers(payerGroup.members, currentBill.members)
+    : [];
 
   const handleCreateAndAdd = async () => {
     const name = newGroupName.trim();
@@ -393,7 +399,7 @@ export const HistoryDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         onClose={() => setPayerGroupId(null)}
         buttons={[{ text: 'Batal', style: 'cancel' }]}
       >
-        {(payerGroup?.members ?? []).map((m) => (
+        {payerCandidates.map((m) => (
           <TouchableOpacity
             key={m.id}
             style={styles.groupPickerRow}
